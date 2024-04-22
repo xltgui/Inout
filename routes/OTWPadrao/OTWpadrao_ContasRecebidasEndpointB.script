@@ -1,0 +1,24 @@
+public JSONObject run(Object dataIn, InoutLogger logger) throws Exception {
+
+    List list = (List)dataIn;
+
+    // Percorre a lista de objetos
+    for (int i=0; i<list.size(); i++) {
+
+        // Obtem objeto de FilaInout
+        FilaInout filaInout = (FilaInout)list.get(i);
+        String msg = filaInout.getMessage();
+        JSONObject record = new JSONObject(msg);
+        try {
+
+
+
+        } catch (Exception e) {
+           filaInout.setStatusCode(InoutConstants.STATUS_TRANSFORMATION_ERROR);
+           filaInout.setStatusDesc(e.getMessage());
+           logger.logError(e);
+        }
+    }
+
+    return new JSONObject();
+}

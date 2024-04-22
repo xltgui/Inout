@@ -1,0 +1,23 @@
+config/
+contabil/
+docs/
+faq/
+filainout/
+jre8/
+logs/
+ssl/
+tmp/
+tomcat/
+winservice/
+*.zip
+*.bat
+
+# Ignora todos os arquivos em scriptlib, exceto o especificado
+scriptlib/io_contabil - tareffa/
+scriptlib/__tareffa-tarquivo__io_contabil/
+scriptlib/__OIC__io_contabil/
+scriptlib/io_contabil/*
+!scriptlib/io_contabil/TemplateUtils.script
+!scriptlib/io_contabil/RunExtratosECartoes.script
+!scriptlib/io_contabil/RegrasSemCartoes.script
+!scriptlib/io_contabil/GeraArquivo.script

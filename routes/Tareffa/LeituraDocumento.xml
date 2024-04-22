@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<route routeId="Tareffa.LeituraDocumento"
+       description="Rota de teste e desenvolvimento para leitura de PDF"
+       user="carlos"
+       creationDate="04/07/2022"
+       daysToKeepRecords="30"
+       saveTransMessage="false"
+       inoutKey="bcea-06d03-5929-251c2">
+
+    <endpointA system="SistemaA"
+               type="SCRIPT"
+               maxResults="100"
+               loop="15000"
+               initDelay="15000"
+>
+        <record zipData="false">
+
+        </record>
+
+    </endpointA>
+
+    <endpointB system="SistemaB"
+               type="SCRIPT"
+               maxResults="100"
+               loop="15000"
+               initDelay="15000"
+>
+    </endpointB>
+
+    <supervisor>
+    </supervisor>
+
+    <validation><![CDATA[
+
+    ]]>
+    </validation>
+    <transformation><![CDATA[
+
+    ]]>
+    </transformation>
+    <afterRecordReceived><![CDATA[
+
+    ]]>
+    </afterRecordReceived>
+    <afterRecordSent><![CDATA[
+
+    ]]>
+    </afterRecordSent>
+</route>

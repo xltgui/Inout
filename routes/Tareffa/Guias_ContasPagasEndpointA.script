@@ -1,0 +1,665 @@
+{import: io_contabil.Database};
+{import: io_contabil.Regras};
+{import: io_contabil.Util};
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.Files;
+import java.util.stream.Collectors;
+import java.io.File;
+import java.io.FilenameFilter;
+import java.util.Arrays;
+import java.io.IOException;
+
+//TEMPLATE 16.05.2017
+public JSONArray run(InoutLogger logger) throws Exception {
+    JSONArray records  = new JSONArray();
+
+    //          ████████╗░█████╗░██████╗░███████╗███████╗███████╗░█████╗░
+    //          ╚══██╔══╝██╔══██╗██╔══██╗██╔════╝██╔════╝██╔════╝██╔══██╗
+    //          ░░░██║░░░███████║██████╔╝█████╗░░█████╗░░█████╗░░███████║
+    //          ░░░██║░░░██╔══██║██╔══██╗██╔══╝░░██╔══╝░░██╔══╝░░██╔══██║
+    //          ░░░██║░░░██║░░██║██║░░██║███████╗██║░░░░░██║░░░░░██║░░██║
+    //          ░░░╚═╝░░░╚═╝░░╚═╝╚═╝░░╚═╝╚══════╝╚═╝░░░░░╚═╝░░░░░╚═╝░░╚═╝
+    
+    //          ██████╗░░█████╗░██████╗░░█████╗░      ██████╗░░░░░█████╗░
+    //          ██╔══██╗██╔══██╗██╔══██╗██╔══██╗      ╚════██╗░░░██╔══██╗
+    //          ██████╔╝██║░░██║██████╦╝██║░░██║      ░█████╔╝░░░██║░░██║
+    //          ██╔══██╗██║░░██║██╔══██╗██║░░██║      ░╚═══██╗░░░██║░░██║
+    //          ██║░░██║╚█████╔╝██████╦╝╚█████╔╝      ██████╔╝██╗╚█████╔╝
+    //          ╚═╝░░╚═╝░╚════╝░╚═════╝░░╚════╝░      ╚═════╝░╚═╝░╚════╝░
+    //                                                      █▄▄ █▄█ ▀   █▄█ █▀▀
+    //                                                      █▄█ ░█░ ▄   ░█░ █▄█
+    
+    // ============================================================================================================
+    // ================ INICIALIZACAO DE VARIAVEIS ================================================================
+    // ============================================================================================================
+    // CARREGA AS PROPRIEDADSO DO "PARAMETROS.TXT"
+    SysProperties props = SysProperties.getInstance();
+    props.load("parametros.txt");
+
+    int limiteArquivosEnviar = 5; // YAN - 12/05/2023 - ACUMULA 5 ARQUIVOS E FAZ O ENVIO, NUMERO PODE SER MUDADO
+
+    String contabilidade =  toDisplayCase(props.get("CONTABILIDADE"));
+    
+    String dirName              = "";
+    String backupDirName        = dirName + "/ENVIADO";
+    String pastaEnviar          = props.get("PASTA_ENVIAR");
+
+    String nomeArquivo                      = "";
+    String nomeArquivoOriginal              = "";
+    
+    int targetDepth = 0;            
+    int arquivosEncontrados = 0;    //YAN - 08/12/2022 - var pra acompanhar qntos arquivos são encontrados
+    String rootPath = props.get("PASTA_INICIAL");   //YAN - 01/09/2022 - PEGA A PASTA RAIZ
+    boolean enviadoDatado = props.get("ENVIADO_DATADO").toUpperCase().equals("SIM") ? true : false; //YAN - 10/05/2023 - DEFINE SE A PASTA ENVIADOS VAI TER SEPARAÇÃO DE DATAS OU NAO
+    
+    //YAN - 01/09/2022 - PARSE DO NIVEL DE SUBPASTAS PRA INT
+    try {
+        targetDepth = (Integer.parseInt(props.get("NIVEIS_SUBPASTA")));
+    } catch (Exception e) {
+        logger.logInfo("ERRO - NAO FOI POSSIVEL FAZER O PARSE DOS NIVEIS DE SUBPASTA - ENCERRANDO EXECUCAO: " + e.getMessage());
+        records  = new JSONArray();
+        return records;
+    }
+
+    logger.logInfo("SYS - CONTABILIDADE: " + contabilidade);
+
+    String[] customizacoes = props.get("CUSTOMIZACAO").split(";");
+    for (int i = 0; i < customizacoes.length; i++) {
+        logger.logInfo("SYS - CUSTOMIZACAO[" + (i+1) + "]: " + customizacoes[i]);
+    }
+    // ============================================================================================================
+    // ============================================================================================================
+    
+    // PRA ATIVAR OS LOGS DE DEBUG LOCALIZAR POR '// logger.logInfo("DEBUG' E SUBSTITUIR POR '// logger.logInfo("DEBUG'
+    // ISSO VAI DESCOMENTAR TODOS OS LOGS DE DEBUG
+    // DEPOIS DE USAR, LEMBRAR DE COMENTAR DE VOLTA OS LOGS DE DEBUG PRA NÃO PESAR O PROCESSAMENTO DO ROBO
+
+    // logger.logInfo("DEBUG -       _      _                                       _      ");
+    // logger.logInfo("DEBUG -      | |    | |                                     | |     ");
+    // logger.logInfo("DEBUG -    __| | ___| |__  _   _  __ _   _ __ ___   ___   __| | ___ ");
+    // logger.logInfo("DEBUG -   / _` |/ _ \\ '_ \\| | | |/ _` | | '_ ` _ \\ / _ \\ / _` |/ _ \\");
+    // logger.logInfo("DEBUG -  | (_| |  __/ |_) | |_| | (_| | | | | | | | (_) | (_| |  __/");
+    // logger.logInfo("DEBUG -   \\__,_|\\___|_.__/ \\__,_|\\__, | |_| |_| |_|\\___/ \\__,_|\\___|");
+    // logger.logInfo("DEBUG -                           __/ |                             ");
+    // logger.logInfo("DEBUG -                          |___/                              ");
+
+    // logger.logInfo("DEBUG - main - PARAMETROS.TXT");
+    // logger.logInfo("DEBUG - main - contabilidade: " + contabilidade);
+    // logger.logInfo("DEBUG - main - rootPath: " + rootPath);
+    // logger.logInfo("DEBUG - main - targetDepth: " + targetDepth);
+    // logger.logInfo("DEBUG - main - pastaEnviar: " + pastaEnviar);
+    // logger.logInfo("DEBUG - main - enviadoDatado: " + enviadoDatado);
+    // logger.logInfo("DEBUG - main - customizacao: " + props.get("CUSTOMIZACAO"));
+    // logger.logInfo("DEBUG - main - subnivelAno: " + props.get("SUBNIVEL_ANO"));
+    // logger.logInfo("DEBUG - main - variacaoAnos: " + props.get("VARIACAO_ANOS"));
+
+    // ============================================================================================================
+    // ================ VALIDAÇÕES DE VARIAVEIS ===================================================================
+    // ============================================================================================================
+    
+    if (contabilidade.equals("")) {
+        logger.logInfo("ERRO - NAO FOI POSSIVEL IDENTIFICAR A CONTABILIDADE - ENCERRANDO EXECUCAO");
+        records  = new JSONArray();
+        return records;
+    }
+
+    if (rootPath.equals("") ||
+        !rootPath.contains(":/")) {
+        logger.logInfo("ERRO - PASTA_INICIAL INVALIDA - ENCERRANDO EXECUCAO");
+        records  = new JSONArray();
+        return records;
+    }
+    
+    // ============================================================================================================
+    // ================ PREPARO DE ESTRUTURA DE PASTAS ============================================================
+    // ============================================================================================================
+    //YAN - 01/09/2022 - PEGA A LISTA DE DIRETORIOS DO NIVEL ESPECIFICADO 
+    String[] dirList = getDirList(rootPath, logger, targetDepth, 0, props);
+    // logger.logInfo("DEBUG - main - dirList: " + Arrays.toString(dirList));
+    // logger.logInfo("DEBUG - main - dirList.length: " + dirList.length);
+
+    //YAN - 11/05/2023 - VALIDAÇÃO PRA NÃO RODAR SE TIVER REGRAS INVALIDAS
+    for (String dir : dirList) {
+        if (dir.contains("REGRA_INVALIDA")) {
+            logger.logInfo("ERRO - REGRA INVALIDA - PARANDO EXECUCAO - APAGANDO ESTRUTURA DE PASTAS");
+            FileUtil.deleteFile(rootPath + "/tareffa_estrutura_pastas.txt");
+            records  = new JSONArray();
+            return records;
+        }
+    }
+    // ============================================================================================================
+
+    // ============================================================================================================
+    // ================ BUSCA DE ARQUIVOS EM CADA PASTA ===========================================================
+    // ============================================================================================================
+    //YAN - 01/09/2022 - ENTRA EM CADA DIRETORIO ENCONTRADO E TENTA ENVIAR ARQUIVOS 
+    for (int i = 0; i < dirList.length; i++) {
+        String dir = "";
+        
+        if (dirList[i].equals("")) {
+            dir = rootPath; // YAN - 12/05/2023 - QUANDO O TARGETDEPTH FOR "0" BUSCA ARQUIVOS DIRETO NA ROOTPATH
+        } else {
+            dir = dirList[i];
+        }
+        
+        logger.logInfo("SYS - PASTA ATUAL: " + dir.replaceAll(rootPath + "/", ""));
+        try {
+            dirName = dir + "/" + pastaEnviar;
+            if (dirName.equals(dir + "/")) dirName = dir; // YAN - 06/10/2022 - OPÇÃO DE NÃO CRIAR UMA PASTA A MAIS, COLOCAR ARQUIVOS DIRETO NA PASTA ENCONTRADA
+            
+            // YAN - 12/05/2023 - COMO AS PASTAS SÃO CARREGADAS DE UM .TXT DEPOIS DE MAPEADAS, SE EXCLUÍREM PASTAS NO MEIO DA EXECUÇÃO
+            //                    ESSAS PASTAS PODEM SER RECRIADAS POR CONTA DESSE PROCESSO
+            if (!FileUtil.fileExists(dirName)) {
+                FileUtil.mkDir(dirName); //CRIA A PASTA "ENVIAR", SE CONFIGURADA
+            }
+            
+            if (dirName.contains("humbs.db")) continue; //IGNORA ARQUIVO "THUMBS.DB" CRIADO PELO SISTEMA
+            
+            // YAN - 05/05/2023 - COLOCA INFORMAÇÃO DE ENVIADOS DATADO OU NÃO NO PARAMETROS.TXT
+            if (enviadoDatado) {
+                backupDirName = dir + "/" + "ENVIADOS/" + DateUtil.dateToString(new Date(), "yyyy") + "/" + DateUtil.dateToString(new Date(), "MM");
+            } else {
+                backupDirName = dir + "/" + "ENVIADOS/";
+            }
+
+            String[] extensoesValidas = {   //POR PADRÃO, DEIXAR APENAS .pdf, .txt e .csv E SEUS MAIUSCULOS
+                ".pdf", ".PDF",
+                ".csv", ".CSV", 
+                ".zip", ".ZIP"
+            };
+
+            String apagaArquivo		= backupDirName; //SÓ PRA LEMBRAR QUE O METODO DE MOVIMENTO DE PASTA É POR CÓPIA->EXCLUSÃO
+
+            // ============================================================================================================
+            // ================ PREPARO DE ARQUIVOS PARA ENVIO ============================================================
+            // ============================================================================================================
+            //RODA ENTRE AS EXTENSOES
+            for (String extensao : extensoesValidas) {
+                // logger.logInfo("DEBUG - main - extensao: " + extensao);
+                try {
+                    FilesLoader fileLoader = new FilesLoader(dirName, extensao, apagaArquivo, true, logger);
+                    int[] abas = {0};
+                    fileLoader.setSheetsToRead(abas);
+                    fileLoader.loadFiles(); //CARREGA TODOS OS ARQUIVOS COM A EXTENSÃO DA ITERAÇÃO ATUAL DENTRO DA PASTA ATUAL
+                    
+                    for (MemoryFile memFile: fileLoader.getMemFiles()) {
+                        nomeArquivo = memFile.getFilename();
+                        arquivosEncontrados++; //ACUMULA ATÉ 5 ARQUIVOS PARA ENVIO
+
+                        nomeArquivo = nomeArquivo.replace(".csv",".pdf"); //PROCESSO PADRÃO PARA FUNCIONAMENTO DO MÉTODO
+                        nomeArquivoOriginal = nomeArquivo;
+                        
+                        logger.logInfo("SYS - ARQUIVO: " + nomeArquivoOriginal);
+                        logger.logInfo("SYS - ARQUIVOS ENCONTRADOS: " + arquivosEncontrados);
+
+                        if (nomeArquivo.contains("humbs.db")) continue;
+                        
+                        JSONObject js = new JSONObject();
+                        
+                        js.put("nomeArquivo", nomeArquivoOriginal);
+                        js.put("arquivoId", nomeArquivoOriginal);
+                        js.put("dirName", backupDirName);
+                        
+                        records.put(js); //INSERE O ARQUIVO NO JSON A SER ENVIADO PARA O S3
+
+                        if (arquivosEncontrados == limiteArquivosEnviar) return records; // YAN - 12/05/2023 - ENVIA OS ARQUIVOS ACUMULADOS - PODE-SE TROCAR O NUMERO
+                    }
+                } catch (Exception ex) {
+                    logger.logInfo("ERRO - NAO FOI POSSIVEL ACESSAR O ARQUIVO: " + ex.getMessage());
+                    try{
+                        if (!FileUtil.fileExists(backupDirName)) {
+                            FileUtil.mkDir(backupDirName);
+                        }
+                        //MOVE O ARQUIVO PARA A PASTA "ENVIADOS"
+                        FileUtil.moveToDir(dirName + "/" + nomeArquivo, backupDirName);
+                    }catch(Exception ee){
+                        logger.logInfo("ERRO - NAO FOI POSSIVEL MOVER O ARQUIVO: " + ee.getMessage());
+                    }
+                }
+            }
+        } catch (Exception ee) {
+            logger.logInfo("ERRO - NAO FOI POSSIVEL REALIZAR O METODO PRINCIPAL: " + ee.getMessage());
+        }
+
+        // ============================================================================================================
+        // ================ LIDA COM O ARQUIVO DE ESTRUTURA DE PASTAS =================================================
+        // ============================================================================================================
+        File estruturaPastas = new File(rootPath + "/tareffa_estrutura_pastas.txt");
+        if (estruturaPastas.exists()) {
+            //YAN - 16/01/2023 - APAGA AS PASTAS POR ONDE JÁ PASSOU
+            FileReader fr = new FileReader(rootPath + "/tareffa_estrutura_pastas.txt");
+            writePathFile(rootPath, (fr.readAll().replaceAll((dir + "<>"), "")), logger);
+            logger.logInfo("SYS - ARQUIVOS ENVIADOS, APAGANDO PASTA DA ESTRUTURA");
+        
+            // YAN - 12/05/2023 - APAGA A ESTRUTURA DE PASTAS QUANDO TIVER ENVIADOS TODOS OS ARQUIVOS,
+            //                    PRA MAPEAR NOVAMENTE CASO EXISTA ALGUMA MUDANÇA NA ESTRUTURA
+            if (i == dirList.length-1 && arquivosEncontrados == 0) {
+                FileUtil.deleteFile(rootPath + "/tareffa_estrutura_pastas.txt");
+                logger.logInfo("SYS - ESTRUTURA PERCORRIDA, APAGANDO ESTRUTURA PARA REMAPEAMENTO");
+            }
+        }
+    }
+    FileUtil.deleteFile(rootPath + "/tareffa_estrutura_pastas.txt");
+    logger.logInfo("SYS - ESTRUTURA PERCORRIDA, APAGANDO ESTRUTURA PARA REMAPEAMENTO");
+    return records; //ENVIA OS ARQUIVOS ENCONTRADOS SE TIVER PERCORRIDO POR TODAS AS PASTAS E TIVER ENCONTRADO MENOS DO QUE O LIMITE DE ENVIO
+}
+
+//YAN - 01/09/2022 - PEGA A LISTA DE DIRETORIOS E COLOCA NUMA STRING ARRAY PRA GERAR O LOOP NO CODIGO 
+//YAN - 08/12/2022 - TODO - ADD METODO DE CRIAR UM .TXT COM O STRDIRLIST E CONSULTAR ELE ANTES DE BUSCAR [FEITO]
+public String[] getDirList(String path, InoutLogger logger, int targetDepth, int currentDepth, SysProperties props) throws Exception {
+    // logger.logInfo("DEBUG - getDirList");
+    String[] dirList;
+    String strDirList = "";
+    File estruturaPastas = new File(path + "/tareffa_estrutura_pastas.txt");
+    if (estruturaPastas.exists()) {
+        logger.logInfo("SYS - ESTRUTURA MAPEADA, PEGANDO A DIRLIST");
+        try {
+            FileReader fr = new FileReader(path + "/tareffa_estrutura_pastas.txt");
+            strDirList = fr.readAll();
+            if (strDirList.equals("")) {
+                FileUtil.deleteFile(path + "/tareffa_estrutura_pastas.txt");
+            }
+        } catch (IOException ioe) {
+            logger.logInfo("ERRO - NAO FOI POSSIVEL LER O ARQUIVO DE ESTRUTURA DE PASTAS: " + ioe.getMessage());
+        }
+    } else {
+        if (targetDepth == 0) {
+            logger.logInfo("SYS - PASTA UNICA DE ENVIO DE ARQUIVOS");
+            dirList = new String[] {""}; 
+            return dirList;
+        } else {
+            logger.logInfo("SYS - MAPEANDO ESTRUTURA DE PASTAS");
+            strDirList = dirWalk(path, logger, targetDepth, currentDepth, props);
+            strDirList = strDirList.replaceAll("\\\\", "/");
+            writePathFile(path, strDirList, logger);
+        }
+    }
+    dirList = strDirList.split("<>");
+    // logger.logInfo("DEBUG - getDirList - dirList: " + Arrays.toString(dirList));
+    logger.logInfo("SYS - ESTRUTURA MAPEADA, CONTENDO [" + dirList.length + "]");
+    return dirList;
+}
+
+// YAN - 01/09/2022 - PERCORRE AS PASTAS DESDE A PASTA RAIZ ATE O NIVEL DESEJADO
+//                   E RETORNA O NOME DAS PASTAS DO NIVEL DESEJADO
+public String dirWalk(String path, InoutLogger logger, int targetDepth, int currentDepth, SysProperties props) throws Exception {
+    // logger.logInfo("DEBUG - dirWalk");
+    // logger.logInfo("DEBUG - DIRWALK: "+ path +" | "+ targetDepth +" | "+ currentDepth);
+    // ============================================================================================================
+    // ============================ INICIALIZAÇÃO DE VARIÁVEIS PARA O MÉTODO ======================================
+    // ============================================================================================================
+    String pathList = "";
+    // logger.logInfo("DEBUG - dirWalk - pastaAtual: " + path.toUpperCase().substring(path.lastIndexOf("\\")+1));
+    String pastaAtual = removeSpecialChars(path.toUpperCase().substring(path.lastIndexOf("\\")+1));
+    // logger.logInfo("DEBUG - dirWalk - pastaAtual: " + pastaAtual);
+    String[] customizacoes = props.get("CUSTOMIZACAO").split(";");
+    int subnivelAno = -1; //INICIADO COMO -1 PRA PERMITIR AS OPÇÕES "0" E OUTROS POSITIVOS
+    if (props.get("SUBNIVEL_ANO").toUpperCase().contains("LTIM") ||
+        props.get("SUBNIVEL_ANO").toUpperCase().contains("0")) {
+            subnivelAno = targetDepth; //COM SUBNIVEL_ANO = 0 ou "LTIM" [(Ú/U)LTIM(O/A)], ELE DEFINE COMO O ÚLTIMO SUBNÍVEL A SER ACESSADO, INCLUSIVE DEPOIS DE REGRAS DE ADIÇÃO DE SUBNÍVEL
+    } else {
+        try {
+            subnivelAno = Integer.parseInt(props.get("SUBNIVEL_ANO"));
+        } catch (Exception e) {
+            // logger.logInfo("DEBUG - NAO FOI POSSIVEL FAZER O PARSE DO SUBNIVEL_ANO: " + e.getMessage());
+        }
+    }
+    String variacaoAno = props.get("VARIACAO_ANOS");
+    // YAN - 12/05/2023 - PASTA SEMPRE SERÁ EM MAIÚSCULO SEM CARACTERES ESPECIAIS TIRANDO "\ _ / . -"
+    //                    PORTANTO OS TERMOS TAMBÉM PRECISARÃO SER CONFIGURADOS DESSA FORMA
+
+    // logger.logInfo("DEBUG - dirWalk - path: " + path);
+    // logger.logInfo("DEBUG - dirWalk - pastaAtual: " + pastaAtual);
+    // logger.logInfo("DEBUG - dirWalk - currentDepth: " + currentDepth);
+    // logger.logInfo("DEBUG - dirWalk - targetDepth: " + targetDepth);
+
+    // ============================================================================================================
+    
+    //YAN - 06/10/2022 - AJUSTE PARA SE LER ARQUIVOS DIRETO NA PASTA RAIZ
+    if (targetDepth == 0 && targetDepth == currentDepth) {
+        return path;
+    }
+    
+    // ============================================================================================================
+    // ================ CUSTOMIZAÇÕES VINDAS DO PARAMETROS.TXT ====================================================
+    // ============================================================================================================
+    //YAN - 11/05/2023 - REGRAS DE CUSTOMIZAÇÃO - ITERA SOBRE O NUMERO DE REGRAS CONFIGURADAS NO PARAMETROS.TXT
+    if (!(customizacoes.length == 1 && customizacoes[0].equals(""))) {
+        // logger.logInfo("DEBUG - dirWalk - customizacoes: " + Arrays.toString(customizacoes));
+        for (int i = 0; i < customizacoes.length; i++) {
+            int subnivelRegra = 0;
+            try {
+                subnivelRegra = Integer.parseInt(customizacoes[i].substring(0, customizacoes[i].indexOf(":")));
+            } catch (Exception e) {
+                logger.logInfo("ERRO - NAO FOI POSSIVEL FAZER O PARSE DO SUBNIVEL DA REGRA: " + e.getMessage());
+                return "REGRA_INVALIDA"; //RETORNA A MSG NA DIRLIST PRA QUE O MÉTODO PRINCIPAL NÃO CONTINUE A EXECUÇÃO COM REGRAS ERRADAS
+            }
+            
+            String termoRegra = customizacoes[i].substring(customizacoes[i].indexOf(":")+1).toUpperCase();
+    
+            // logger.logInfo("DEBUG - dirWalk - subnivelRegra: " + subnivelRegra);
+            // logger.logInfo("DEBUG - dirWalk - termoRegra: " + termoRegra);
+            
+            if (currentDepth == subnivelRegra) {
+                if (!termoRegra.startsWith("+") &&
+                    !termoRegra.startsWith(">")) {
+                        return "REGRA_INVALIDA"; // SE O TERMO NÃO COMEÇAR COM NENHUM OPERADOR, A REGRA ESTÁ ERRADA E PARA A EXECUÇÃO DO ROBÔ
+                    }
+                // ============================================================================================================
+                // ================ REGRAS PRA ADICIONAR SUBNÍVEL FINAL DESEJADO  =============================================
+                // ============================================================================================================
+                // YAN - 12/05/2023 - REGRA DE ADICIONAR SUBNÍVEL - PRA QUANDO EXISTE UMA EXCEÇÃO À ESTRUTURA PADRÃO
+                //                    QUANDO UMA DAS PASTAS QUE O ROBÔ PRECISE ACESSAR TEM UM SUBNÍVEL A MAIS
+                //                    NÃO EXISTE UM MÉTODO DE DIMINUIR O SUBNÍVEL FINAL, PORTANTO O "NIVEIS_SUBPASTA" NO PARAMETROS.TXT
+                //                    DEVE SER SEMPRE O MENOR SUBNÍVEL VÁLIDO A SER ACESSADO PELO ROBÔ,
+                //                    E ENTÃO TENTAR ALCANÇAR SUBNÍVEIS MAIORES COM A REGRA DE ADIÇÃO DE SUBNÍVEL
+                if (termoRegra.startsWith("+")) {
+                    termoRegra = termoRegra.substring(1);
+                    
+                    if (termoRegra.startsWith("!")) {
+                        termoRegra = termoRegra.substring(1);
+                        if (!(pastaAtual.contains(termoRegra))) {
+                            // logger.logInfo("DEBUG - dirWalk - REGRA ADICAO SUBNIVEL (!) - PASTA [" + pastaAtual +"]  NO SUBNIVEL [" + currentDepth + "] NAO POSSUI O TERMO [" + termoRegra + "], SUBNIVEL DESEJADO PASSANDO DE [" + targetDepth + "] PARA [" + (targetDepth+1) + "]");
+                            targetDepth = targetDepth + 1;
+                        }
+                    } else {
+                        if ((pastaAtual.contains(termoRegra))) {
+                            // logger.logInfo("DEBUG - dirWalk - REGRA ADICAO SUBNIVEL - PASTA [" + pastaAtual + "] NO SUBNIVEL [" + currentDepth + "] POSSUI O TERMO [" + termoRegra + "], SUBNIVEL DESEJADO PASSANDO DE [" + targetDepth + "] PARA [" + (targetDepth+1) + "]");
+                            targetDepth = targetDepth + 1;
+                        }
+                    }
+                }
+                // ============================================================================================================
+                // ================ REGRAS PRA INDICAÇÃO DE PASTAS ============================================================
+                // ============================================================================================================
+                // YAN - 12/05/2023 - REGRA DE INDICAÇÃO DE PASTA - PRA QUANDO FOR NECESSÁRIO INDICAR AS ÚNICAS PASTAS QUE O ROBÔ DEVE ENTRAR
+                //                    OU IMPEDIR QUE ELE ENTRE EM PASTAS ESPECÍFICAS
+                //                    LEMBRAR QUE A REGRA POSITIVA FORÇA QUE O ROBÔ ENTRE !!APENAS!! NAS PASTAS COM AQUELE TERMO,
+                //                    ENQUANTO QUE A REGRA NEGATIVA (COM O OPERADOR "!") PROÍBE QUE ELE ENTRE EM PASTAS COM O TERMO INDICADO,
+                //                    PERMITINDO QUE ELE ENTRE EM TODAS AS OUTRAS
+                if (termoRegra.startsWith(">")) {
+                    termoRegra = termoRegra.substring(1);
+                    
+                    if (termoRegra.startsWith("!")) {
+                        termoRegra = termoRegra.substring(1);
+                        if ((pastaAtual.contains(termoRegra))) {
+                            // logger.logInfo("DEBUG - dirWalk - REGRA INDICACAO DE PASTA (!) - PASTA [" + pastaAtual + "] NO SUBNIVEL [" + currentDepth + "] POSSUI O TERMO NEGATIVO [" + termoRegra + "], PORTANTO NÃO DEVE PROSSEGUIR");
+                            return pathList;
+                        }
+                    } else {
+                        if (!(pastaAtual.contains(termoRegra))) {
+                            // logger.logInfo("DEBUG - dirWalk - REGRA INDICACAO DE PASTA (!) - PASTA [" + pastaAtual + "] NO SUBNIVEL [" + currentDepth + "] NAO POSSUI O TERMO [" + termoRegra + "], PORTANTO NÃO DEVE PROSSEGUIR");
+                            return pathList;
+                        }
+                    }
+                }
+            } else {
+                // logger.logInfo("DEBUG - dirWalk - NAO CAIU EM NENHUMA CUSTOMIZACAO");
+                continue;
+            }
+        }
+    } else {
+        // logger.logInfo("DEBUG - dirWalk - NENHUMA CUSTOMIZACAO");
+    }
+    // ============================================================================================================
+    // ================ REGRAS DE LIMITAÇÃO DE ANO ================================================================
+    // ============================================================================================================
+    // YAN - 11/05/2023 - REGRAS DE PASTA COM O ANO - PRA QUANDO A ESTRUTURA POSSÚI DIVERSAS PASTAS DE ANOS ANTERIORES
+    //               !!!! ESSA REGRA SÓ É NECESSÁRIA QUANDO O CLIENTE !! NÃO !! QUISER CRIAR A PASTA ENVIAR !!!!,
+    //                    POIS DESSA FORMA O ROBÔ IRÁ FAZER UMA VARREDURA EM TODAS AS PASTAS DA ESTRUTURA, ENVIANDO OS ARQUIVOS ENCONTRADOS,
+    //                    SE UMA PASTA "ENVIAR" FOR SER CRIADA, O ROBÔ NÃO IRÁ FICAR FAZENDO O ENVIO DE ARQUIVOS PRÉ-EXISTENTES NAS PASTAS
+    
+    if (subnivelAno != -1) {
+        // logger.logInfo("DEBUG - dirWalk - subnivelAno: " + subnivelAno);
+        // logger.logInfo("DEBUG - dirWalk - variacaoAno: " + variacaoAno);
+        if (currentDepth == subnivelAno) {
+            boolean pastaAnoCerta = false; //CONSIDERA A PASTA ERRADA POR PADRÃO, ATÉ QUE PASSE EM ALGUMA DAS VALIDAÇÕES E PROVE SER A PASTA CERTA
+            // logger.logInfo("DEBUG - dirWalk - pastaAnoCerta: " + pastaAnoCerta);
+            if (!variacaoAno.equals("")) {
+                int variacaoAnoInt = 0;
+                try {
+                    variacaoAnoInt = Integer.parseInt(variacaoAno.replaceAll("\\D", "")); //PEGA O VALOR NUMÉRICO DO VARIACAO_ANOS
+                } catch (Exception e) {
+                    logger.logInfo("ERRO - NAO FOI POSSIVEL FAZER O PARSE DA VARIACAO_ANOS: " + e.getMessage());
+                }
+                for (int i = 0; i <= variacaoAnoInt; i++) {
+                    if (variacaoAno.contains("+") && variacaoAno.contains("-")) { //VARIAÇÃO DE ANO PRA MAIS E PRA MENOS
+                        String anoMenos = DateUtil.dateToString(Date.from(LocalDate.now()
+                        .minusYears(i)
+                        .atStartOfDay(ZoneId.systemDefault())
+                        .toInstant())
+                        , "yyyy");
+                        
+                        String anoMais = DateUtil.dateToString(Date.from(LocalDate.now()
+                        .plusYears(i)
+                        .atStartOfDay(ZoneId.systemDefault())
+                        .toInstant())
+                        , "yyyy");
+
+                        // logger.logInfo("DEBUG - dirWalk - anoMenos: " + anoMenos);
+                        // logger.logInfo("DEBUG - dirWalk - anoMais: " + anoMais);
+                        
+                        //NAS VALIDAÇÕES DE PASTA_ANO, USANDO O PATH AO INVÉS DA PASTA ATUAL,
+                        //PRA CONSIDERAR SITUAÇÕES ONDE A ÚLTIMA PASTA É MÊS E A ANTERIOR É ANO,
+                        //TEORICAMENTE UMA PASTA COM O ANO ATUAL NÃO VAI ESTAR EM UMA PASTA DE OUTRO ANO
+                        //MAS CASO NECESSÁRIO, AJUSTAR PRA VALIDAR AO INVÉS DO PATH, APENAS A PASTAATUAL
+                        if (path.toUpperCase().contains(anoMenos) ||
+                        path.toUpperCase().contains(anoMais)) {
+                            pastaAnoCerta = true;
+                            // logger.logInfo("DEBUG - dirWalk - pastaAnoCerta: " + pastaAnoCerta);
+                        }
+                    } else if (variacaoAno.contains("+")) { //VARIAÇÃO DE ANO APENAS PRA MAIS
+                        String anoMais = DateUtil.dateToString(Date.from(LocalDate.now()
+                                                                    .plusYears(i)
+                                                                    .atStartOfDay(ZoneId.systemDefault())
+                                                                    .toInstant())
+                                                                    , "yyyy");
+                                                                    if (path.toUpperCase().contains(anoMais)) {
+                                                                        pastaAnoCerta = true;
+                                                                    }
+
+                        // logger.logInfo("DEBUG - dirWalk - anoMais: " + anoMais);
+
+                        if (path.toUpperCase().contains(anoMais)) {
+                            pastaAnoCerta = true;
+                            // logger.logInfo("DEBUG - dirWalk - pastaAnoCerta: " + pastaAnoCerta);
+                        }
+                    } else if (variacaoAno.contains("-")) { //VARIAÇÃO DE ANO APENAS PRA MENOS
+                        String anoMenos = DateUtil.dateToString(Date.from(LocalDate.now()
+                                                                        .minusYears(i)
+                                                                        .atStartOfDay(ZoneId.systemDefault())
+                                                                        .toInstant())
+                                                                        , "yyyy");
+
+                        // logger.logInfo("DEBUG - dirWalk - anoMenos: " + anoMenos);
+
+                        if (path.toUpperCase().contains(anoMenos)) {
+                        pastaAnoCerta = true;
+                        // logger.logInfo("DEBUG - dirWalk - pastaAnoCerta: " + pastaAnoCerta);
+                        }
+                    } else { //SEM VARIAÇÃO, APENAS ANO ATUAL
+                        String anoAtual = DateUtil.dateToString(new Date(), "yyyy");
+
+                        // logger.logInfo("DEBUG - dirWalk - anoAtual: " + anoAtual);
+
+                        if (path.toUpperCase().contains(anoAtual)) {
+                            pastaAnoCerta = true;
+                            // logger.logInfo("DEBUG - dirWalk - pastaAnoCerta: " + pastaAnoCerta);
+                        }
+                    }
+                }
+                // logger.logInfo("DEBUG - dirWalk - pastaAnoCerta: " + pastaAnoCerta);
+                if (!pastaAnoCerta) return pathList;
+            } else {
+                logger.logInfo("ERRO - REGRA DE ANOS INVÁLIDA - SUBNIVEL_ANO CONFIGURADO, MAS VARIACAO_ANOS NAO");
+                return "REGRA_INVALIDA"; //RETORNA A MSG NA DIRLIST PRA QUE O MÉTODO PRINCIPAL NÃO CONTINUE A EXECUÇÃO COM REGRAS ERRADAS
+            }
+        }
+    }
+    // ============================================================================================================
+    // ================ FIM DAS CUSTOMIZAÇÕES VINDAS DO PARAMETROS.TXT ============================================
+    // ============================================================================================================
+    
+    // ============================================================================================================
+    // ================ REGRAS MANUAIS ABAIXO =====================================================================
+    // ============================================================================================================
+    
+    boolean pastaCerta = false;
+    String anoAtual     = DateUtil.dateToString(new Date(), "yyyy");
+    String anoAnterior  = DateUtil.dateToString(Date.from(LocalDate.now()
+                                                                        .minusYears(1)
+                                                                        .atStartOfDay(ZoneId.systemDefault())
+                                                                        .toInstant())
+                                                                        , "yyyy");
+
+
+    if(currentDepth == 1){
+        pastaCerta = true;
+    }
+
+    if(currentDepth == 2 &&
+            (pastaAtual.contains("DP" || pastaAtual.contains("FISCAL") || pastaAtual.contains("OBRIGACOES"))){
+        if (pastaAtual.contains("DP") || pastaAtual.contains("FISCAL")) targetDepth = 5;
+        if (pastaAtual.contains("OBRIGACOES")) targetDepth = 6;
+
+        pastaCerta = true;
+    }
+    if(currentDepth == 3 &&)
+        
+    
+    
+    // if (currentDepth == X &&
+    //    (path.toUpperCase().contains(termoRegra))) {
+    //     pastaCerta = true;
+    // }
+    // if (currentDepth == X &&
+    //    (path.toUpperCase().contains(termoRegra))) {
+    //     targetDepth = targetDepth + 1;
+    // }
+    if (!pastaCerta) return pathList;
+
+    // ============================================================================================================
+    // ================ REGRAS MANUAIS ACIMA ======================================================================
+    // ============================================================================================================
+    
+    //YAN - 01/09/2022 - LIMITA A RETROALIMENTACAO DO METODO PRA PASTAS ALEM DO NIVEL DESEJADO
+    if (currentDepth == targetDepth) {
+        return path;
+    }
+    
+                    
+    
+    File currentDir = new File(path);
+    File[] list = currentDir.listFiles();
+
+    // logger.logInfo("DEBUG - dirWalk - list: " + Arrays.toString(list));
+    
+    if (list == null) {
+        return pathList; //PASTA VAZIA
+    }
+    
+    //YAN - 01/09/2022 - PRA CADA ARQUIVO ENCONTRADO, CONFERE PRA VER SE É UM DIRETORIO
+    for (File f : list) {
+        if (f.isDirectory()) {
+            // logger.logInfo("DEBUG - dirWalk - f: " + f);
+            //YAN - 01/09/2022 - CHAMA O MESMO METODO PARA A PASTA EM QUESTAO
+            //                   E ADICIONA AS PASTAS CORRETAS A ESSA LISTA DE DIRETORIOS
+            String tempPathList = dirWalk(f.getAbsolutePath(), logger, targetDepth, currentDepth+1, props);
+            if (tempPathList.equals("")) continue;
+            if (pathList.equals("")) {
+                pathList = tempPathList;
+            } else {
+                //VAI CRIANDO UMA STRING ONDE AS PASTAS ESTÃO SEPARADAS POR "<>" PRA DEPOIS TRANSFORMAR NUMA ARRAY COM O SPLIT EM "<>"
+                //USANDO "<>" PRA EVITAR USAR QUALQUER OUTRA COISA QUE POSSA TER EM NOMES DE PASTAS
+                //PODE TER PROBLEMAS SE ALGUMA PASTA TIVER "<>" NO SEU NOME, MAS AÍ NE... ( ͡ಠ ʖ̯ ͡ಠ)
+                pathList = pathList + "<>" + tempPathList; 
+            }
+        }
+        else {
+            // logger.logInfo("DEBUG - dirWalk - NAO EH PASTA");            
+        }
+    }
+    return pathList;
+}
+
+// YAN - 12/05/2023 - CRIA O .TXT COM A ESTRUTURA DE PASTAS PARA ACESSO RAPIDO DO MÉTODO PRINCIPAL
+public void writePathFile(String root, String strFileList, InoutLogger logger) {
+    // logger.logInfo("DEBUG - writePathFile");
+    try {
+        FileWriter fw = new FileWriter(root + "/tareffa_estrutura_pastas.txt");
+        fw.writeNewFile(strFileList);
+    } catch (IOException ioe) {
+        logger.logInfo("ERRO - NAO FOI POSSIVEL CRIAR O .TXT COM A ESTRUTURA DE PASTAS: " + ioe.getMessage());
+    }
+}
+
+public String removeSpecialChars(String texto) {
+    texto = texto.replaceAll("[^a-zA-Z0-9\\_/. -]+","").trim();
+    texto = texto.replaceAll("^ +| +$|( )+", " ");
+    texto = texto.replaceAll("( \\.)", ".");
+    return texto;
+}
+
+public JSONObject getRoteiro() {
+    return new JSONObject();
+}
+
+// ============================================================================================================
+// ================ MÉTODOS DESATIVADOS =======================================================================
+// ============================================================================================================
+// class ttLote {
+    //         public String lote;
+    //         public ttLote(){}
+    //         public ttLote(ttLote tt){
+//                 lote=tt.lote;
+//     }
+// }
+// YAN - 10/05/2023 - METODO DE AJUSTE DE NOMES DESATIVADO, AGORA QUEM AJUSTA OS NOMES É O S3
+// public void ajustaNomeArquivos(String path, InoutLogger logger) {
+//         String [] fileList = getFileList(path, logger);
+//         //YAN - 15/09/2022 - PRA CADA ARQUIVO ELE REMOVE OS CARACTERES ESPECIAIS DO NOME
+//         for (String arquivo : fileList) {
+//                 File arquivoOriginal = new File(arquivo);
+//         String fileName = arquivoOriginal.getName();
+//         File arquivoCorrigido = new File(path.replaceAll("\\\\", "/") + "/" + removeSpecialChars(fileName));
+//         if ((!arquivoOriginal.getName().equals(arquivoCorrigido.getName())) && !arquivoOriginal.getName().equals("")) {
+//                 arquivoOriginal.renameTo(arquivoCorrigido);
+//             }
+//     }
+// }
+// YAN - 12/05/2023 - DESATIVADO POR SER USADO NO AJUSTE DE NOME
+// public String[] getFileList(String path, InoutLogger logger) {
+//     // logger.logInfo("DEBUG - getFileList");
+//     String strFileList = getFiles(path, logger);
+//    strFileList = strFileList.replaceAll("\\\\", "/");
+//    String[] fileList = strFileList.split("<>");
+//    // logger.logInfo("DEBUG - getFileList - " + Arrays.toString(fileList));
+//    return fileList;
+// }
+// YAN - 12/05/2023 - DESATIVADO POR SER USADO NO AJUSTE DE NOME
+// public String getFiles(String path, InoutLogger logger) {
+//     // logger.logInfo("DEBUG - getFiles");
+//     String fileList = "";
+//     File currentFile = new File(path);
+//     File[] list = currentFile.listFiles();
+//     if (list == null) {
+//         return fileList;
+//     }
+//     //YAN - 15/09/2022 - PRA CADA ARQUIVO ENCONTRADO, CONFERE PRA VER SE NÃO É UM DIRETORIO
+//     for (File f : list) {
+//         if (!f.isDirectory()) {
+//             //YAN - 15/09/2022 - AJUSTA A ADIÇÃO DE NOVOS DIRETORIOS NA LISTA PRO SPLIT DEPOIS
+//             if (fileList.equals("")) {
+//                 fileList = f.getAbsolutePath();
+//             } else {
+//                 fileList = fileList + "<>" + f.getAbsolutePath();
+//             }
+//         } else {
+//             // logger.logInfo("DEBUG - getFiles - NAO EH UM ARQUIVO");
+//         }
+//     }
+//     return fileList;
+// }

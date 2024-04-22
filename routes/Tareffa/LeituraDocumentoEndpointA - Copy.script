@@ -1,0 +1,636 @@
+import java.io.BufferedReader;
+{import: io_contabil.Database};
+{import: io_contabil.Regras};
+{import: io_contabil.Util};
+{import: io_contabil.Leitura202108PDF};
+
+//TEMPLATE 16.05.2017
+public JSONArray run(InoutLogger logger) throws Exception {
+
+    JSONArray  records  = new JSONArray();
+
+    records = leituraBalancetes(logger);
+    return records;
+
+}
+
+
+
+
+//## CODIGO GERADO A PARTIR DAS REGRAS NO SALESFORCE ##
+//## NAO ALTERAR DAQUI ATE O FINAL DO SCRIPT!!!!     ##
+
+public JSONObject getRoteiro() {
+    JSONObject js = new JSONObject();
+    js.put("codigo", "ROT-2020-089561");
+    js.put("idRoteiro", "a0A1C000011YtxF");
+    js.put("idEmpresa", "a0q1C000008XLipQAG");
+    js.put("fornecedor", "0");
+    js.put("dataMovimento", "0");
+    js.put("portador", "0");
+    js.put("documentoNF", "");
+    js.put("valorDocumento", "0");
+    js.put("valorJuros", "");
+    js.put("valorDesconto", "");
+    js.put("valorMulta", "");
+    js.put("valorPagamento", "");
+    js.put("complemento01", "");
+    js.put("complemento02", "");
+    js.put("complemento03", "");
+    js.put("complemento04", "");
+    js.put("complemento05", "");
+    js.put("complemento06", "");
+    js.put("centroCusto", "");
+    js.put("valorAlternativo", "");
+    js.put("cpfCnpj", "");
+    js.put("gravaCnpjMovimento", "FALSE");
+    js.put("CNPJ_Contabilidade", "65.182.628/0001-09");
+    js.put("cnpjSomenteNumeros", "FALSE");
+    js.put("dataFake", "");
+
+    js.put("Abas_Especificas", "");
+    js.put("classificaFornec", "");
+    js.put("classificaPlano", "");
+    js.put("contaFixaCredito", "");
+    js.put("contaFixaDebito", "");
+    js.put("contaFixaDesconto", "");
+    js.put("contaFixaJuros", "");
+    js.put("contaFixaMulta", "");
+    js.put("contabilidade", "Colini");
+    js.put("Contabilizacao_Atraves_Fornecedor", "FALSE");
+    js.put("Conta_Fixa_Cruzamento_Extrato", "");
+    js.put("Cruza_Extrato_com_Extrato", "FALSE");
+    js.put("cruzaExtrato", "FALSE");
+    js.put("empresa", "Colini");
+    js.put("empresaDir", "Tareffacolini_#000");
+    js.put("erpContabilidade", "QUESTOR");
+    js.put("Forcar_Partida_Dobrada", "FALSE");
+    js.put("geraGerencial", "FALSE");
+    js.put("Integracao_fiscal", "FALSE");
+    js.put("Usa_Filial_Questor", "false");
+    js.put("Ler_Planilha_Pelo_Cabecalho", "FALSE");
+    js.put("movimentoPortador", "PARTIDA DOBRADA");
+    js.put("naoZerarValores", "FALSE");
+    js.put("lerAposPrincipal", "");
+    js.put("campoLinhaPrincipal", "VALOR DOCUMENTO");
+    js.put("nomeRelatorioRef", "TAREFFA");
+    js.put("Planilhas_Padroes", "");
+    js.put("statusRoteiro", "EM DESENVOLVIMENTO");
+    js.put("tipoArquivo", ".XLSX - EXCEL");
+    js.put("tipoIntegracao", "CONTAS PAGAS");
+    js.put("fazerShrink", "FALSE");
+    js.put("colunaShrink", "0");
+    js.put("dupliNaoEncontContabil", "FALSE");
+    js.put("Conta_Dupl_Contabil", "");
+    js.put("Aloca_Checknum", "FALSE");
+
+    js.put("X001_ROB", "RECEITA OPERACIONAL BRUTA");
+    js.put("X002_Despesas", "DESPESAS");
+    js.put("X003_Despesas_Detalhe", "DETALHES DAS DESPESAS");
+    js.put("X004_Geracao_Caixa_Mes", "GERACAO DE CAIXA MENSAL");
+    js.put("X005_Geracao_Caixa_Acumulado", "GERACAO DE CAIXA ACUMULADO");
+    js.put("X006_Despesas_sobre_Faturamento", "% DESPESAS SOBRE FATURAMENTO");
+    js.put("X007_Lucro", "LUCRO");
+    js.put("X008_Deducoes_Receitas", "");
+    js.put("X009_CMV", "CUSTO MERCADORIAS VENDIDAS");
+    js.put("X010_CPV", "CUSTO PRODUTOS VENDIDOS");
+    js.put("X011_CSP", "CUSTO SERVICOS PRESTADOS");
+    js.put("X012_Indicador", "");
+    js.put("X013_Indicador", "");
+    js.put("X014_Indicador", "");
+    js.put("X015_Indicador", "");
+    js.put("X016_Indicador", "");
+    js.put("X017_Indicador", "");
+    js.put("X018_Indicador", "");
+    js.put("X019_Indicador", "");
+    js.put("X020_Indicador", "");
+    js.put("X021_Indicador", "");
+
+    js.put("X015_Label", "");
+    js.put("X016_Label", "");
+    js.put("X017_Label", "");
+    js.put("X018_Label", "");
+    js.put("X019_Label", "");
+    js.put("X020_Label", "");
+    js.put("Divisao_Filial", "-");
+
+    return js;
+}
+
+public String getContaMovimento(String contaMovimento, String tipoLancamento, String documento, String nomeOrigem, JSONObject objHistorico) {
+    String complemento01   = objHistorico.optString("complemento01");
+    String complemento02   = objHistorico.optString("complemento02");
+    String complemento03   = objHistorico.optString("complemento03");
+    String complemento04   = objHistorico.optString("complemento04");
+    String complemento05   = objHistorico.optString("complemento05");
+    String complemento06   = objHistorico.optString("complemento06");
+    String complemento07   = objHistorico.optString("complemento07");
+    String complemento08   = objHistorico.optString("complemento08");
+    String complemento09   = objHistorico.optString("complemento09");
+    String complemento10   = objHistorico.optString("complemento10");
+    String nomeArquivo     = objHistorico.optString("nomeArquivo").toUpperCase();
+    String dataMovimento   = objHistorico.optString("dataMovimento");
+    String mesAnoAnterior  = objHistorico.optString("mesAnoAnterior");
+    String mesAno2Anterior = objHistorico.optString("mesAno2Anterior");
+    String mesAnoAtual     = objHistorico.optString("mesAnoAtual");
+    String contaDebito     = objHistorico.optString("contaDebito");
+    String contaCredito    = objHistorico.optString("contaCredito");
+    String contaJuros      = objHistorico.optString("contaJuros");
+    String contaDesconto   = objHistorico.optString("contaDesconto");
+    String contaMulta      = objHistorico.optString("contaMulta");
+    String nomePortador    = objHistorico.optString("nomePortador");
+    String tipoPlanilha    = objHistorico.optString("tipoPlanilha");
+    int    numeroAba       = objHistorico.optInt("numeroAba");
+    String codCentroCusto  = objHistorico.optString("centroCusto");
+    double valorDocumento  = objHistorico.optDouble("valorDocumento");
+    double valorDesconto   = objHistorico.optDouble("valorDesconto");
+    double valorJuros      = objHistorico.optDouble("valorJuros");
+    String conta = contaMovimento;
+    if (complemento03.contains("C6#")) { complemento06 = complemento03.substring(complemento03.indexOf("C6#")+3).trim(); complemento03 = complemento03.substring(0,complemento03.indexOf("C6#")).trim(); }
+    if (complemento03.contains("C5#")) { complemento05 = complemento03.substring(complemento03.indexOf("C5#")+3).trim(); complemento03 = complemento03.substring(0,complemento03.indexOf("C5#")).trim(); }
+    if (complemento03.contains("C4#")) { complemento04 = complemento03.substring(complemento03.indexOf("C4#")+3).trim(); complemento03 = complemento03.substring(0,complemento03.indexOf("C4#")).trim(); }
+    if (StringUtil.removeSpecialCharsToUC(complemento01).contains("SEFIP") &&
+        StringUtil.removeSpecialCharsToUC(complemento01).contains("MINISTERIO DA FAZENDA")) {
+        conta = "155";
+    }
+    if (StringUtil.removeSpecialCharsToUC(complemento01).contains("DAM-E") &&
+        StringUtil.removeSpecialCharsToUC(complemento01).contains("ISS RETIDO")) {
+        conta = "120";
+    }
+    if (StringUtil.removeSpecialCharsToUC(complemento01).contains("DECLARACAO") &&
+        StringUtil.removeSpecialCharsToUC(complemento01).contains("DEFIS")) {
+        conta = "99";
+    }
+    if (StringUtil.removeSpecialCharsToUC(complemento01).contains("ESCRITURACAO") &&
+        StringUtil.removeSpecialCharsToUC(complemento01).contains("SPED") &&
+        StringUtil.removeSpecialCharsToUC(complemento01).contains("CONTABIL")) {
+        conta = "15";
+    }
+    if (StringUtil.removeSpecialCharsToUC(complemento01).contains("DARF") &&
+        StringUtil.removeSpecialCharsToUC(complemento01).contains("5952")) {
+        conta = "32";
+    }
+    if (StringUtil.removeSpecialCharsToUC(complemento01).contains("IMPOSTO") &&
+        StringUtil.removeSpecialCharsToUC(complemento01).contains("RETIDO") &&
+        StringUtil.removeSpecialCharsToUC(complemento01).contains("DIRF")) {
+        conta = "97";
+    }
+    if (StringUtil.removeSpecialCharsToUC(complemento01).contains("DARF") &&
+        StringUtil.removeSpecialCharsToUC(complemento01).contains("1708")) {
+        conta = "74";
+    }
+    if (StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("DAS") &&
+        StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("SIMPLES") &&
+        StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("NACIONAL")) {
+        conta = "33";
+    }
+    if (StringUtil.removeSpecialCharsToUC(complemento01).contains("GUIA DE RECOLHIMENTO DO FGTS")) {
+        conta = "20";
+    }
+    if (StringUtil.removeSpecialCharsToUC(complemento01).contains("DARF - IRRF") &&
+        StringUtil.removeSpecialCharsToUC(complemento01).contains("|0561")) {
+        conta = "9";
+    }
+    if (StringUtil.removeSpecialCharsToUC(complemento01).contains("GPS") &&
+        StringUtil.removeSpecialCharsToUC(complemento01).contains("2631")) {
+        conta = "65";
+    }
+    if (StringUtil.removeSpecialCharsToUC(complemento01).contains("SERVICOS MEDICOS") &&
+        StringUtil.removeSpecialCharsToUC(complemento01).contains("DMED")) {
+        conta = "47";
+    }
+    if (StringUtil.removeSpecialCharsToUC(complemento01).contains("ATIVIDADES IMOBILIARIAS") &&
+        StringUtil.removeSpecialCharsToUC(complemento01).contains("DIMOB")) {
+        conta = "98";
+    }
+    if (StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("DCTF")) {
+        conta = "72";
+    }
+    if (StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("DIMOB")) {
+        conta = "98";
+    }
+    if (StringUtil.removeSpecialCharsToUC(complemento01).contains("ESCRITURACAO FISCAL") &&
+        StringUtil.removeSpecialCharsToUC(complemento01).contains("ECF")) {
+        conta = "16";
+    }
+    if (StringUtil.removeSpecialCharsToUC(complemento01).contains("DARF") &&
+        StringUtil.removeSpecialCharsToUC(complemento01).contains("5952")) {
+        conta = "32";
+    }
+    if (StringUtil.removeSpecialCharsToUC(complemento01).contains("DARF") &&
+        StringUtil.removeSpecialCharsToUC(complemento01).contains("2484")) {
+        conta = "7";
+    }
+    if (StringUtil.removeSpecialCharsToUC(complemento01).contains("DARF") &&
+        StringUtil.removeSpecialCharsToUC(complemento01).contains("1708")) {
+        conta = "74";
+    }
+    if (StringUtil.removeSpecialCharsToUC(complemento01).contains("DARF") &&
+        StringUtil.removeSpecialCharsToUC(complemento01).contains("5993")) {
+        conta = "127";
+    }
+    if (StringUtil.removeSpecialCharsToUC(complemento01).contains("|DARF") &&
+        StringUtil.removeSpecialCharsToUC(complemento01).contains("|CSLL") &&
+        StringUtil.removeSpecialCharsToUC(complemento01).contains("|6012")) {
+        conta = "8";
+    }
+    if (StringUtil.removeSpecialCharsToUC(complemento01).contains("BALANCETE")) {
+        conta = "54";
+    }
+    if (StringUtil.removeSpecialCharsToUC(complemento01).contains("BALANCO PATRIMONIAL")) {
+        conta = "54";
+    }
+    if (StringUtil.removeSpecialCharsToUC(complemento01).contains("|DARF") &&
+        StringUtil.removeSpecialCharsToUC(complemento01).contains("|CSLL") &&
+        StringUtil.removeSpecialCharsToUC(complemento01).contains("|2372")) {
+        conta = "6";
+    }
+    if (StringUtil.removeSpecialCharsToUC(complemento01).contains("|DARF") &&
+        StringUtil.removeSpecialCharsToUC(complemento01).contains("|IRPJ") &&
+        StringUtil.removeSpecialCharsToUC(complemento01).contains("|2089")) {
+        conta = "58";
+    }
+    if (StringUtil.removeSpecialCharsToUC(complemento01).contains("|DARF") &&
+        StringUtil.removeSpecialCharsToUC(complemento01).contains("ARRECADACAO") &&
+        StringUtil.removeSpecialCharsToUC(complemento01).contains("|3373")) {
+        conta = "69";
+    }
+    if (StringUtil.removeSpecialCharsToUC(complemento01).contains("|DARF") &&
+        StringUtil.removeSpecialCharsToUC(complemento01).contains("COFINS")) {
+        conta = "42";
+    }
+    if (StringUtil.removeSpecialCharsToUC(complemento01).contains("|DARF") &&
+        StringUtil.removeSpecialCharsToUC(complemento01).contains("|PIS")) {
+        conta = "53";
+    }
+    if (StringUtil.removeSpecialCharsToUC(complemento01).contains("COMPROVANTE DE DECLARACAO DAS CONTRIBUICOES A RECOLHER")) {
+        conta = "3";
+    }
+    if (StringUtil.removeSpecialCharsToUC(complemento01).contains("PROTOCOLO DE ENVIO DE ARQUIVOS")) {
+        conta = "3";
+    }
+    if (StringUtil.removeSpecialCharsToUC(complemento01).contains("|DARF")) {
+        conta = "10";
+    }
+    if (StringUtil.removeSpecialCharsToUC(complemento01).contains("VERSAO EFD-CONTRIBUICOES")) {
+        conta = "43";
+    }
+    if (StringUtil.removeSpecialCharsToUC(complemento01).contains("VERSAO SPED")) {
+        conta = "44";
+    }
+    if (StringUtil.removeSpecialCharsToUC(complemento01).contains("DEMONSTRATIVO DE PAGAMENTO DE SALARIO") &&
+        StringUtil.removeSpecialCharsToUC(complemento01).contains("|SALARIO")) {
+        conta = "25";
+    }
+    if (StringUtil.removeSpecialCharsToUC(complemento01).contains("DEMONSTRATIVO DE PAGAMENTO DE SALARIO") &&
+        StringUtil.removeSpecialCharsToUC(complemento01).contains("|ADIANTAMENTO")) {
+        conta = "23";
+    }
+    if (StringUtil.removeSpecialCharsToUC(complemento01).contains("DCTFWEB") &&
+        StringUtil.removeSpecialCharsToUC(complemento01).contains("RECIBO") &&
+        StringUtil.removeSpecialCharsToUC(complemento01).contains("DECLARACAO")) {
+        conta = "101";
+    }
+    if (StringUtil.removeSpecialCharsToUC(complemento01).contains("DARF") &&
+        StringUtil.removeSpecialCharsToUC(complemento01).contains("5123")) {
+        conta = "37";
+    }
+    if (StringUtil.removeSpecialCharsToUC(complemento01).contains("DARF") &&
+        StringUtil.removeSpecialCharsToUC(complemento01).contains("IRRF") &&
+        StringUtil.removeSpecialCharsToUC(complemento01).contains("1708")) {
+        conta = "74";
+    }
+    if (StringUtil.removeSpecialCharsToUC(complemento01).contains("GUIA") &&
+        StringUtil.removeSpecialCharsToUC(complemento01).contains("PREVIDENCIA") &&
+        StringUtil.removeSpecialCharsToUC(complemento01).contains("SOCIAL")) {
+        conta = "28";
+    }
+    if (StringUtil.removeSpecialCharsToUC(complemento01).contains("|DARF") &&
+        StringUtil.removeSpecialCharsToUC(complemento01).contains("8301")) {
+        conta = "10";
+    }
+    if (StringUtil.removeSpecialCharsToUC(complemento01).contains("RECIBO DE ENTREGA DE DOCUMENTOS DIGITAIS")) {
+        conta = "80";
+    }
+    if (StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("DESTDA")) {
+        conta = "80";
+    }
+    if (StringUtil.removeSpecialCharsToUC(complemento01).contains("IMPOSTOS A PAGAR") &&
+        StringUtil.removeSpecialCharsToUC(complemento01).contains("FEDERAIS")) {
+        conta = "4";
+    }
+    if (StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("TRIBUTOS")) {
+        conta = "4";
+    }
+    if (StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("RAIS")) {
+        conta = "117";
+    }
+    if (StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("HONORARIO")) {
+        conta = "213";
+    }
+    if (StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("EFD") &&
+        StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("REINF")) {
+        conta = "119";
+    }
+    if (StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("GPS")) {
+        conta = "28";
+    }
+    if (StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("FOLHA") &&
+        StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("PAG")) {
+        conta = "25";
+    }
+    if (StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("LABORE")) {
+        conta = "25";
+    }
+    if (StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("PIS") &&
+        StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("8301")) {
+        conta = "10";
+    }
+    if (StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("DEFIS")) {
+        conta = "99";
+    }
+    if (StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("BALANC")) {
+        conta = "54";
+    }
+    if (StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("FGTS")) {
+        conta = "20";
+    }
+    if (StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("GFIP")) {
+        conta = "3";
+    }
+    if (StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("CSRF")) {
+        conta = "32";
+    }
+    if (StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("CSLL") &&
+        StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("2372")) {
+        conta = "6";
+    }
+    if (StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("CSLL") &&
+        StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("2484")) {
+        conta = "7";
+    }
+    if (StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("CSLL") &&
+        StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("6012")) {
+        conta = "8";
+    }
+    if (StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("IRPJ") &&
+        StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("2089")) {
+        conta = "58";
+    }
+    if (StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("IRPJ") &&
+        StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("5993")) {
+        conta = "59";
+    }
+    if (StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("IRPJ") &&
+        StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("3373")) {
+        conta = "69";
+    }
+    if (StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("SPED") &&
+        StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("ECD")) {
+        conta = "43";
+    }
+    if (StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("SPED") &&
+        StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("ECF")) {
+        conta = "44";
+    }
+    if (StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("IRRF") &&
+        StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("1708")) {
+        conta = "74";
+    }
+    if (StringUtil.removeSpecialCharsToUC(complemento01).contains("DARE") &&
+        StringUtil.removeSpecialCharsToUC(complemento01).contains("1473")) {
+        conta = "85";
+    }
+    if (StringUtil.removeSpecialCharsToUC(complemento01).contains("DARF") &&
+        StringUtil.removeSpecialCharsToUC(complemento01).contains("COFINS") &&
+        StringUtil.removeSpecialCharsToUC(complemento01).contains("2172")) {
+        conta = "63";
+    }
+    if (StringUtil.removeSpecialCharsToUC(complemento01).contains("COFINS") &&
+        StringUtil.removeSpecialCharsToUC(complemento01).contains("2172")) {
+        conta = "63";
+    }
+    if (StringUtil.removeSpecialCharsToUC(complemento01).contains("RESUMO") &&
+        StringUtil.removeSpecialCharsToUC(complemento01).contains("FOLHA") &&
+        StringUtil.removeSpecialCharsToUC(complemento01).contains("CALCULO")) {
+        conta = "129";
+    }
+    if (StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("PGDAS") &&
+        StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("RECIBO")) {
+        conta = "138";
+    }
+    if (StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("PGDAS") &&
+        StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("EXTRATO")) {
+        conta = "171";
+    }
+    if (StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("PGDAS") &&
+        StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("DE") &&
+        StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("DECLARACAO")) {
+        conta = "172";
+    }
+    if (StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("DAS") &&
+        StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("PERT")) {
+        conta = "131";
+    }
+    if (StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("DAS") &&
+        StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("PGFN")) {
+        conta = "144";
+    }
+    if (StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("DAS") &&
+        StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("PCLTO") &&
+        StringUtil.removeSpecialCharsToUC(nomeArquivo).contains("SN")) {
+        conta = "118";
+    }
+    if (StringUtil.removeSpecialCharsToUC(complemento01).contains("MUNICIPIO DE UBERLANDIA") &&
+        StringUtil.removeSpecialCharsToUC(complemento01).contains("SERVICOS PRESTADOS") &&
+        StringUtil.removeSpecialCharsToUC(complemento01).contains("TRB")) {
+        conta = "CODERP";
+    }
+    if (StringUtil.removeSpecialCharsToUC(complemento01).contains("MUNICIPIO DE UBERLANDIA") &&
+        StringUtil.removeSpecialCharsToUC(complemento01).contains("SERVICOS TOMADOS") &&
+        StringUtil.removeSpecialCharsToUC(complemento01).contains("TRB")) {
+        conta = "CODERP";
+    }
+    return conta;
+}
+public boolean getTratarLinhaIgnorar(String line, String tipoLancamento, String documento, String nomeOrigem, JSONObject objHistorico) {
+    String complemento01   = objHistorico.optString("complemento01");
+    String complemento02   = objHistorico.optString("complemento02");
+    String complemento03   = objHistorico.optString("complemento03");
+    String complemento04   = objHistorico.optString("complemento04");
+    String complemento05   = objHistorico.optString("complemento05");
+    String complemento06   = objHistorico.optString("complemento06");
+    String complemento07   = objHistorico.optString("complemento07");
+    String complemento08   = objHistorico.optString("complemento08");
+    String complemento09   = objHistorico.optString("complemento09");
+    String complemento10   = objHistorico.optString("complemento10");
+    String nomeArquivo     = objHistorico.optString("nomeArquivo").toUpperCase();
+    String dataMovimento   = objHistorico.optString("dataMovimento");
+    String mesAnoAnterior  = objHistorico.optString("mesAnoAnterior");
+    String mesAno2Anterior = objHistorico.optString("mesAno2Anterior");
+    String mesAnoAtual     = objHistorico.optString("mesAnoAtual");
+    String contaDebito     = objHistorico.optString("contaDebito");
+    String contaCredito    = objHistorico.optString("contaCredito");
+    String contaJuros      = objHistorico.optString("contaJuros");
+    String contaDesconto   = objHistorico.optString("contaDesconto");
+    String contaMulta      = objHistorico.optString("contaMulta");
+    String nomePortador    = objHistorico.optString("nomePortador");
+    String tipoPlanilha    = objHistorico.optString("tipoPlanilha");
+    int    numeroAba       = objHistorico.optInt("numeroAba");
+    String codCentroCusto  = objHistorico.optString("centroCusto");
+    double valorDocumento  = objHistorico.optDouble("valorDocumento");
+    double valorDesconto   = objHistorico.optDouble("valorDesconto");
+    double valorJuros      = objHistorico.optDouble("valorJuros");
+    boolean tratarIgnoraLinha = false;
+    if (complemento03.contains("C6#")) { complemento06 = complemento03.substring(complemento03.indexOf("C6#")+3).trim(); complemento03 = complemento03.substring(0,complemento03.indexOf("C6#")).trim(); }
+    if (complemento03.contains("C5#")) { complemento05 = complemento03.substring(complemento03.indexOf("C5#")+3).trim(); complemento03 = complemento03.substring(0,complemento03.indexOf("C5#")).trim(); }
+    if (complemento03.contains("C4#")) { complemento04 = complemento03.substring(complemento03.indexOf("C4#")+3).trim(); complemento03 = complemento03.substring(0,complemento03.indexOf("C4#")).trim(); }
+    return tratarIgnoraLinha;
+}
+public String  getReplaceTermos(String parametro, String parametro2, JSONObject objHistorico) {
+    String lote = "";
+    String nomeOrigem      = objHistorico.optString("nomeOrigem");
+    String documento       = objHistorico.optString("documento");
+    String complemento01   = objHistorico.optString("complemento01");
+    String complemento02   = objHistorico.optString("complemento02");
+    String complemento03   = objHistorico.optString("complemento03");
+    String complemento04   = objHistorico.optString("complemento04");
+    String complemento05   = objHistorico.optString("complemento05");
+    String complemento06   = objHistorico.optString("complemento06");
+    String complemento07   = objHistorico.optString("complemento07");
+    String complemento08   = objHistorico.optString("complemento08");
+    String complemento09   = objHistorico.optString("complemento09");
+    String complemento10   = objHistorico.optString("complemento10");
+    String nomeArquivo     = objHistorico.optString("nomeArquivo").toUpperCase();
+    String dataMovimento   = objHistorico.optString("dataMovimento");
+    String mesAnoAnterior  = objHistorico.optString("mesAnoAnterior");
+    String mesAno2Anterior = objHistorico.optString("mesAno2Anterior");
+    String mesAnoAtual     = objHistorico.optString("mesAnoAtual");
+    String contaMovimento  = objHistorico.optString("contaMovimento");
+    String contaPortador   = objHistorico.optString("contaPortador");
+    String nomePortador    = objHistorico.optString("nomePortador");
+    String codCentroCusto  = objHistorico.optString("centroCusto");
+    double valorDocumento  = objHistorico.optDouble("valorDocumento");
+    double valorDesconto   = objHistorico.optDouble("valorDesconto");
+    double valorJuros      = objHistorico.optDouble("valorJuros");
+
+    return parametro2.trim();
+}
+public String  getLimpaCampos(String parametro, String parametro2, JSONObject objHistorico) {
+    String lote = parametro2;
+    String nomeOrigem      = objHistorico.optString("nomeOrigem");
+    String documento       = objHistorico.optString("documento");
+    String complemento01   = objHistorico.optString("complemento01");
+    String complemento02   = objHistorico.optString("complemento02");
+    String complemento03   = objHistorico.optString("complemento03");
+    String complemento04   = objHistorico.optString("complemento04");
+    String complemento05   = objHistorico.optString("complemento05");
+    String complemento06   = objHistorico.optString("complemento06");
+    String complemento07   = objHistorico.optString("complemento07");
+    String complemento08   = objHistorico.optString("complemento08");
+    String complemento09   = objHistorico.optString("complemento09");
+    String complemento10   = objHistorico.optString("complemento10");
+    String nomeArquivo     = objHistorico.optString("nomeArquivo").toUpperCase();
+    String nomePortador    = objHistorico.optString("nomePortador");
+
+    return lote.trim();
+}
+public String  getLimpaCamposAvancado(String parametro, String parametro2, JSONObject objHistorico) {
+    String lote = parametro2;
+    String nomeOrigem      = objHistorico.optString("nomeOrigem");
+    String documento       = objHistorico.optString("documento");
+    String complemento01   = objHistorico.optString("complemento01");
+    String complemento02   = objHistorico.optString("complemento02");
+    String complemento03   = objHistorico.optString("complemento03");
+    String complemento04   = objHistorico.optString("complemento04");
+    String complemento05   = objHistorico.optString("complemento05");
+    String complemento06   = objHistorico.optString("complemento06");
+    String complemento07   = objHistorico.optString("complemento07");
+    String complemento08   = objHistorico.optString("complemento08");
+    String complemento09   = objHistorico.optString("complemento09");
+    String complemento10   = objHistorico.optString("complemento10");
+    String nomeArquivo     = objHistorico.optString("nomeArquivo").toUpperCase();
+    String nomePortador    = objHistorico.optString("nomePortador");
+    String dataMovimento   = objHistorico.optString("dataMovimento");
+    String tipoPlanilha    = objHistorico.optString("tipoPlanilha");
+    String mesAnoAnterior  = objHistorico.optString("mesAnoAnterior");
+    String mesAno2Anterior = objHistorico.optString("mesAno2Anterior");
+    String mesAnoAtual     = objHistorico.optString("mesAnoAtual");
+    String contaDebito     = objHistorico.optString("contaDebito");
+    String contaCredito    = objHistorico.optString("contaCredito");
+    String contaJuros      = objHistorico.optString("contaJuros");
+    String contaDesconto   = objHistorico.optString("contaDesconto");
+    String contaMulta      = objHistorico.optString("contaMulta");
+    String codCentroCusto  = objHistorico.optString("centroCusto");
+    double valorDocumento  = objHistorico.optDouble("valorDocumento");
+    double valorDesconto   = objHistorico.optDouble("valorDesconto");
+    double valorJuros      = objHistorico.optDouble("valorJuros");
+
+    return lote.trim();
+}
+public String getTabelaContabil(String TabelaContabil, String nomeOrigem, String documento, String nomePortador,
+                             String complemento01, String complemento02, String complemento03, String complemento04, String complemento05, 
+                             String nomeArquivo) {
+          String retornaTabelaContabil = TabelaContabil;
+    return retornaTabelaContabil;
+}
+
+public String getCentroCusto(String codCentroCusto, JSONObject jdados) {
+    String retornaCentroCusto = "";
+    String dirName = "C:/Inout/config/";
+    
+    return retornaCentroCusto;
+}
+public String getCortaCnpj(String documento, JSONObject jdados) {
+          String retornaCortes = "";
+    if (StringUtil.removeSpecialCharsToUC(documento).contains("ISSQN") &&
+        StringUtil.removeSpecialCharsToUC(documento).contains("NOVA") &&
+        StringUtil.removeSpecialCharsToUC(documento).contains("LIMA") &&
+        StringUtil.removeSpecialCharsToUC(documento).contains("GUIA")) {
+        retornaCortes = "EMITIDO POR;LANCAMENTOS CADASTRAIS";
+    }
+    if (StringUtil.removeSpecialCharsToUC(documento).contains("NOVA") &&
+        StringUtil.removeSpecialCharsToUC(documento).contains("LIMA") &&
+        StringUtil.removeSpecialCharsToUC(documento).contains("RENDAS") &&
+        StringUtil.removeSpecialCharsToUC(documento).contains("MOBILIARIAS") &&
+        StringUtil.removeSpecialCharsToUC(documento).contains("ENCERRAMENTO") &&
+        StringUtil.removeSpecialCharsToUC(documento).contains("PRESTADOS")) {
+        retornaCortes = "Emitido em;Inscricao Municipal";
+    }
+    if (StringUtil.removeSpecialCharsToUC(documento).contains("NOVA") &&
+        StringUtil.removeSpecialCharsToUC(documento).contains("LIMA") &&
+        StringUtil.removeSpecialCharsToUC(documento).contains("RENDAS") &&
+        StringUtil.removeSpecialCharsToUC(documento).contains("MOBILIARIAS") &&
+        StringUtil.removeSpecialCharsToUC(documento).contains("ENCERRAMENTO") &&
+        StringUtil.removeSpecialCharsToUC(documento).contains("TOMADOS")) {
+        retornaCortes = "Emitido em;Inscricao Municipal";
+    }
+    if (StringUtil.removeSpecialCharsToUC(documento).contains("BOLETONF")) {
+        retornaCortes = "CNPJ:;SACADOR";
+    }
+    if (StringUtil.removeSpecialCharsToUC(documento).contains("ENCERRAMENTO DE COMPETENCIA") &&
+        StringUtil.removeSpecialCharsToUC(documento).contains("SERVICOS PRESTADOS") &&
+        StringUtil.removeSpecialCharsToUC(documento).contains("RIBEIRAO DAS NEVES")) {
+        retornaCortes = "NOME/RAZAO SOCIAL:;INSCRICAO MUNICIPAL:";
+    }
+    if (StringUtil.removeSpecialCharsToUC(documento).contains("ENCERRAMENTO DE COMPETENCIA") &&
+        StringUtil.removeSpecialCharsToUC(documento).contains("SERVICOS TOMADOS") &&
+        StringUtil.removeSpecialCharsToUC(documento).contains("RIBEIRAO DAS NEVES")) {
+        retornaCortes = "NOME/RAZAO SOCIAL:;INSCRICAO MUNICIPAL:";
+    }
+    if (StringUtil.removeSpecialCharsToUC(documento).contains("PREFEITURA") &&
+        StringUtil.removeSpecialCharsToUC(documento).contains("MUNICIPAL") &&
+        StringUtil.removeSpecialCharsToUC(documento).contains("INHAUMA")) {
+        retornaCortes = "DAM ##;AUTENTICACAO MECANICA NO VERSO ##";
+    }
+    return retornaCortes;
+}
+public String getCortaData(String documento, JSONObject jdados) {
+          String retornaCortes = "";
+    return retornaCortes;
+}
+public String getAdicionaLinha(String documento, JSONObject jdados) {
+          String retornaLinha = "";
+    return retornaLinha;
+}
+

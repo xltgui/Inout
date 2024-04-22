@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<route routeId="Robo.Guias_ContasPagas"
+       description="Roda Rota que baixa servicos no tareffa "
+       user="carlos"
+       creationDate="13/06/2019"
+       daysToKeepRecords="2"
+       saveTransMessage="false"
+       inoutKey="8d5f-060b9-bc95-53e28">
+
+    <endpointA system="SistemaA"
+               type="SCRIPT"
+               maxResults="100"
+               loop="20000"
+               initDelay="15000"
+>
+        <record zipData="false">
+
+        </record>
+
+    </endpointA>
+
+    <endpointB system="SistemaB"
+               type="SCRIPT"
+               maxResults="100"
+               loop="0"
+               initDelay="15000"
+>
+    </endpointB>
+
+    <supervisor>
+        <alerts>
+            <error errorType="org.codehaus.commons.compiler.CompileException" maxNumber="1"/>
+        </alerts>
+    </supervisor>
+
+    <validation><![CDATA[
+
+    ]]>
+    </validation>
+    <transformation><![CDATA[
+
+    ]]>
+    </transformation>
+    <afterRecordReceived><![CDATA[
+
+    ]]>
+    </afterRecordReceived>
+    <afterRecordSent><![CDATA[
+
+    ]]>
+    </afterRecordSent>
+</route>

@@ -1,0 +1,312 @@
+{import: io_contabil.Database};
+{import: io_contabil.Regras};
+{import: io_contabil.Util};
+{import: io_contabil.Gservicos};
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.activation.MimetypesFileTypeMap;
+
+public JSONObject run(Object dataIn, InoutLogger logger) throws Exception {
+
+
+    // OrdemServicosAPI.BUSCA_POR_CNPJ
+    List list = (List)dataIn;
+
+
+	SysProperties props = SysProperties.getInstance();
+    props.load("parametros.txt");
+
+	String contabilidade =  toDisplayCase(props.get("CONTABILIDADE"));
+	String emailAcesso = "integracao@" + contabilidade.toLowerCase() + ".com.br";
+	
+	
+    
+    OrdemServicosAPI api = new OrdemServicosAPI(emailAcesso, "12345", OrdemServicosAPI.SERVER_PROD, logger);
+
+
+    // Percorre a lista de objetos
+    for (int i=0; i<list.size(); i++) {
+
+        // Obtem objeto de FilaInout
+        FilaInout filaInout = (FilaInout)list.get(i);
+        String msg = filaInout.getMessage();
+        JSONObject record = new JSONObject(msg);
+        try {
+
+            String nomeArquivo2  = "";
+            if (record.has("nomeArquivo")) nomeArquivo2 = record.optString("nomeArquivo");
+
+            String dirName  = record.optString("dirName");        
+
+            String nomeArquivo64 = "";
+            //nomeArquivo64 = "https://s4.ottimizzacontabil.com:55325/storage/"  + Base64.getEncoder().encodeToString((dirName +"/" + nomeArquivo2).getBytes()) + "/download";
+
+            //GoogleURLShortener googleURLShortener = new GoogleURLShortener("AIzaSyAMnXDT7PftgvztmQ0cKUAIUxD7anlaftU", logger);
+
+
+            // File Upload.
+            String requestURL = String.format("https://s3.tareffaapp.com.br:55325/storage/tareffa-gestao-servicos/accounting/%s/store", contabilidade);
+
+			
+            // Setando as Headers do request.
+            HashMap<String, String> headers = new HashMap();
+            headers.put("Authorization", api.getToken());
+            
+            MultipartUtility multipart = new MultipartUtility(requestURL, headers, "UTF-8");
+
+            // File 
+            File arquivo = new File(record.optString("dirName")+ "/" + nomeArquivo2);
+
+            if (arquivo.exists()) {
+                
+ 
+                try {
+                    multipart.addFilePart("file", arquivo, logger);
+ 
+                    List<String> responses = multipart.finish();
+ 
+                    for (String response : responses) {
+                    }
+ 
+
+                } catch (Exception ex) {
+                    StringWriter errors = new StringWriter();
+                    ex.printStackTrace(new PrintWriter(errors));
+                }
+            }
+
+
+
+
+        } catch (Exception e) {
+            filaInout.setStatusCode(InoutConstants.STATUS_TRANSFORMATION_ERROR);
+            filaInout.setStatusDesc(e.getMessage());
+            logger.logError(e);
+
+        }
+    }
+
+
+
+
+    return new JSONObject();
+}
+
+
+
+public class GoogleURLShortener {
+
+    private InoutLogger logger;
+
+    private static final String HTTP_POST = "POST";
+private static final String MEDIA_TYPE_JSON = "application/json";
+
+public static final String GOOGLE_API_URL = "https://www.googleapis.com/urlshortener/v1/url";
+//public static final String GOOGLE_API_URL = "https://goo.gl/";
+
+
+
+private String API_KEY;
+
+public GoogleURLShortener(String key, InoutLogger logger) {
+    this.API_KEY = key;
+    this.logger = logger;
+}
+
+public JSONObject urlShortener(String url) {
+    JSONObject response = new JSONObject();
+    try {
+        StringBuilder responseRaw = new StringBuilder();
+
+        // Credenciais para login.
+        JSONObject data = new JSONObject();
+        data.put("longUrl", url);
+
+        java.net.URL serviceURL = new java.net.URL(String.format(
+            "%s?key=%s", GOOGLE_API_URL, API_KEY
+        ));
+
+        // Opens java.net.URL as a POST Request
+        java.net.HttpURLConnection connection = (java.net.HttpURLConnection) serviceURL.openConnection();
+        connection.setDoOutput(true); // indicates a post
+        connection.setRequestMethod(HTTP_POST);
+
+        // Default Headers.
+        // connection.setRequestProperty("Accept", MEDIA_TYPE_JSON);
+        connection.setRequestProperty("Content-Type", MEDIA_TYPE_JSON);
+
+        // Writes the Request Body...
+        try {
+            java.io.OutputStream os = connection.getOutputStream();
+            os.write(data.toString().getBytes());
+            os.flush();
+            os.close();
+        } catch (Exception ex1) {
+        } 
+
+        // Writes the Response Body...
+        try {
+            java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(connection.getInputStream(), "UTF-8"));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                responseRaw.append(line);
+            }
+            reader.close();
+        } catch (Exception ex2) {
+        } 
+
+        // checks if it is a valid json
+        if (responseRaw.toString().startsWith("{") && responseRaw.toString().endsWith("}")) {
+            response = new JSONObject(responseRaw.toString());
+        }
+    } catch (Exception ex0) { }
+
+    return response;
+}
+
+
+
+
+}
+
+
+
+
+
+public class MultipartUtility {
+
+    private static final String NEW_LINE = "\r\n";
+private final String boundary = "----" + System.currentTimeMillis();
+private HttpURLConnection httpConn;
+private String charset = "UTF-8";
+private OutputStream outputStream;
+private PrintWriter writer;
+public MultipartUtility(String requestURL, HashMap<String, String> headers, String charset)
+throws IOException {
+    this.charset = charset;
+
+    URL url = new URL(requestURL);
+    httpConn = (HttpURLConnection) url.openConnection();
+    httpConn.setRequestMethod("POST");
+    httpConn.setUseCaches(false);
+    httpConn.setDoOutput(true);    // indicates POST method
+    httpConn.setDoInput(true);
+
+    httpConn.setRequestProperty("Content-Type",
+                                "multipart/form-data; boundary=" + boundary);
+
+    for (Map.Entry<String, String> header : headers.entrySet()) {
+        httpConn.setRequestProperty((String) header.getKey(), (String) header.getValue());
+    }
+
+    outputStream = httpConn.getOutputStream();
+    writer = new PrintWriter(new OutputStreamWriter(outputStream, charset),
+                             true);
+}
+
+public void addFormField(String name, String value) {
+    writer.append("--" + boundary).append(NEW_LINE);
+    writer.append("Content-Disposition: form-data; name=\"" + name + "\"")
+    .append(NEW_LINE);
+    writer.append("Content-Type: text/plain; charset=" + charset).append(
+        NEW_LINE);
+    writer.append(NEW_LINE);
+    writer.append(value).append(NEW_LINE);
+    writer.flush();
+}
+
+private String getFileMimeType(File file) {
+    MimetypesFileTypeMap fileTypeMap = new MimetypesFileTypeMap();
+    return fileTypeMap.getContentType(file.getName());
+}
+
+private String getContentType(File file) {
+    return String.format("Content-Type: %s", getFileMimeType(file));
+}
+
+private String getContentDisposition(String name, File file) {
+    return String.format(
+        "Content-Disposition: form-data; name=\"%s\"; filename=\"%s\"",
+        name, file.getName()
+    );
+}
+
+private String getContentTransferEncoding() {
+    return "Content-Transfer-Encoding: binary";
+}
+
+public void addFilePart(String name, File uploadFile, InoutLogger logger)
+throws IOException, Exception {
+    StringBuilder builder = new StringBuilder();
+    builder.append("--").append(boundary).append(NEW_LINE);
+    builder.append(getContentDisposition(name, uploadFile)).append(NEW_LINE);
+    builder.append(getContentType(uploadFile)).append(NEW_LINE);
+    builder.append(getContentTransferEncoding()).append(NEW_LINE);
+    builder.append(NEW_LINE);
+    if (logger != null) {
+        logger.logInfo(builder.toString());
+    }
+    writer.append(builder);
+    writer.flush();
+    FileInputStream inputStream = new FileInputStream(uploadFile);
+    byte[] buffer = new byte[4096];
+    int bytesRead = -1;
+    while ((bytesRead = inputStream.read(buffer)) != -1) {
+        outputStream.write(buffer, 0, bytesRead);
+    }
+    outputStream.flush();
+    inputStream.close();
+    writer.append(NEW_LINE);
+    writer.flush();
+}
+
+public void addFilePart(String name, File uploadFile)
+throws IOException, Exception {
+    addFilePart(name, uploadFile, null);
+}
+
+public List<String> finish() throws IOException {
+    List<String> response = new ArrayList<String>();
+    writer.append("--" + boundary + "--");
+    writer.close();
+
+    // checks server's status code first
+    int status = httpConn.getResponseCode();
+    if (status == HttpURLConnection.HTTP_OK) {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(
+            httpConn.getInputStream()));
+        String line = null;
+        while ((line = reader.readLine()) != null) {
+            response.add(line);
+        }
+        reader.close();
+        httpConn.disconnect();
+    } else {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(
+            httpConn.getErrorStream()));
+        String line = null;
+        while ((line = reader.readLine()) != null) {
+            response.add(line);
+        }
+        reader.close();
+        httpConn.disconnect();
+        //            throw new IOException("Server returned non-OK status: " + status);;
+    }
+    return response;
+}
+}
+

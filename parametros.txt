@@ -1,0 +1,14 @@
+--------------------------------------------
+-- CAMPOS OBRIGATÓRIOS ---------------------
+--------------------------------------------
+CONTABILIDADE 	= Imersao
+PASTA_INICIAL 	= C:/DEPTO
+NIVEIS_SUBPASTA 	= 6
+--------------------------------------------
+-- CAMPOS OPCIONAIS ------------------------
+--------------------------------------------
+PASTA_ENVIAR =
+ENVIADO_DATADO	= SIM
+CUSTOMIZACAO	=
+SUBNIVEL_ANO	=
+VARIACAO_ANOS	=

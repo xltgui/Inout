@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<route routeId="ottimizza.Teste"
+       description=""
+       user="carlos"
+       creationDate="18/10/2022"
+       daysToKeepRecords="60"
+       saveTransMessage="false"
+       inoutKey="9691-df2d1-0bbc-ea973">
+
+    <endpointA system="SistemaA"
+               type="SCRIPT"
+               maxResults="100"
+               loop="15000"
+               initDelay="15000"
+>
+        <record zipData="false">
+
+        </record>
+
+    </endpointA>
+
+    <endpointB system="SistemaB"
+               type="SCRIPT"
+               maxResults="100"
+               loop="15000"
+               initDelay="15000"
+>
+    </endpointB>
+
+    <supervisor>
+    </supervisor>
+
+    <validation><![CDATA[
+
+    ]]>
+    </validation>
+    <transformation><![CDATA[
+
+    ]]>
+    </transformation>
+    <afterRecordReceived><![CDATA[
+
+    ]]>
+    </afterRecordReceived>
+    <afterRecordSent><![CDATA[
+
+    ]]>
+    </afterRecordSent>
+</route>

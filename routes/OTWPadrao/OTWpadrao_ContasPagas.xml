@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<route routeId="OTWPadrao.OTWpadrao_ContasPagas"
+       description=""
+       user="carlos"
+       creationDate="15/02/2024"
+       daysToKeepRecords="60"
+       saveTransMessage="false"
+       inoutKey="82b6-f0a0b-cec8-7fbbb">
+
+    <endpointA system="SistemaA"
+               type="SCRIPT"
+               maxResults="100"
+               loop="15000"
+               initDelay="15000"
+>
+        <record zipData="false">
+
+        </record>
+
+    </endpointA>
+
+    <endpointB system="SistemaB"
+               type="SCRIPT"
+               maxResults="100"
+               loop="15000"
+               initDelay="15000"
+>
+    </endpointB>
+
+    <supervisor>
+    </supervisor>
+
+    <validation><![CDATA[
+
+    ]]>
+    </validation>
+    <transformation><![CDATA[
+
+    ]]>
+    </transformation>
+    <afterRecordReceived><![CDATA[
+
+    ]]>
+    </afterRecordReceived>
+    <afterRecordSent><![CDATA[
+
+    ]]>
+    </afterRecordSent>
+</route>

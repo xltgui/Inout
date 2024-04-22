@@ -1,0 +1,15 @@
+public JSONArray run(InoutLogger logger) throws Exception {
+
+    JSONArray records = new JSONArray();
+
+    try {
+
+
+
+    } catch (Exception e) {
+        logger.logError(e);
+    }
+
+    logger.logInfo("EndpointA: Encontrado " + String.valueOf(records.length()) + " registros");
+    return records;
+}
