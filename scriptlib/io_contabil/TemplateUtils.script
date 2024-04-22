@@ -307,6 +307,12 @@ public class TemplateUtils {
 			return true;//BANRISUL
 		}
 
+		// gui - 2404-035964 -> NOVO PADRAO EXTRATO ITAU -> 22/04/2024
+		if (arquivoCompleto.contains("CORRENTE") && arquivoCompleto.contains("ITAU") &&
+				arquivoCompleto.contains("LANCAMENTO") && !arquivoCompleto.contains("POSICAO DA CONTA CORRENTE")
+				&& arquivoCompleto.contains("INTERNET5.ITAU.COM.BR") && arquivoCompleto.contains("NOME: AGENCIA:")) {
+			return true; //ITAU PADRAO 6
+		}
 
 		if (arquivoCompleto.contains("CORRENTE") && arquivoCompleto.contains("ITAU") &&
 				arquivoCompleto.contains("LANCAMENTO") && !arquivoCompleto.contains("MENSAL") && !arquivoCompleto.contains("SALDO RESUMIDO")

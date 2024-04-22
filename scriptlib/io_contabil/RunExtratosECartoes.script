@@ -3280,12 +3280,12 @@ public String verificaExtratos(JSONObject variaveis, HashMap mapaVariavel, Memor
 				return variaveis.toString();
 			}
 
-
 			if ((cabecalhoPlanilha.contains("POSICAO DA CONTA CORRENTE -") && arquivoCompleto.toUpperCase().contains("ITAU")) ||
 					(cabecalhoPlanilha.contains("LOGOTIPO ITAU") && cabecalhoPlanilha.contains("LANCAMENTO")) ||
 					(cabecalhoPlanilha.contains("SALDO RESUMIDO") && cabecalhoPlanilha.contains("BANCO ITAU S/A")) &&
 							nomePortador2.equals("") || (cabecalhoPlanilha.contains("EXTRATO CONTA CORRENTE") &&
-					cabecalhoPlanilha.contains("PERIODO DE VISUALIZACAO: MES COMPLETO"))) {
+					cabecalhoPlanilha.contains("PERIODO DE VISUALIZACAO: MES COMPLETO")) ||
+					(cabecalhoPlanilha.contains("INTERNET5.ITAU.COM.BR") && cabecalhoPlanilha.contains("AGENCIA:") && cabecalhoPlanilha.contains("CONTA:"))) {
 				// logger.logInfo("NOMESSPORT " +nomePortador2);
 				JSONObject jDados = new JSONObject();
 
@@ -3302,6 +3302,7 @@ public String verificaExtratos(JSONObject variaveis, HashMap mapaVariavel, Memor
 				}
 
 				if (cabecalhoPlanilha.contains("CONTA:")) {
+					logger.logInfo("entra1");
 					if (cabecalhoPlanilha.contains("AGENCIA:"))
 						nomePortador2 = "ITAU-PDF - " + cutString(cabecalhoPlanilha, "AGENCIA:", "CONTA:") + " ";
 					if (cabecalhoPlanilha.contains("LOGOTIPO ITAU") && cabecalhoPlanilha.contains("LANCAMENTOS")) {
@@ -3316,7 +3317,18 @@ public String verificaExtratos(JSONObject variaveis, HashMap mapaVariavel, Memor
 						nomePortador2 += cutString(cabecalhoPlanilha, "CONTA:", "SALDO");
 						jDados.put("TIPO", "004");
 					}
+
+					if(cabecalhoPlanilha.contains("NOME: AGENCIA:")){
+						logger.logInfo("linea2 -> " + line);
+						//nomePortador2 = memFile.getStringFieldRemoveEspCharsUpper(3);
+						nomePortador2 = cutString(line, "CONTA:");
+						nomePortador2 = nomePortador2.trim().replaceAll(";", "");
+						jDados.put("TIPO", "006");
+					}
+
 				}
+
+
 				jDados.put("CODEMPRESA", codEmpresa);
 				jDados.put("NOMEARQUIVO", nomeArquivo);
 				jDados.put("TIPOPLANILHA", "EXTRATO-ITAU");
@@ -3326,6 +3338,8 @@ public String verificaExtratos(JSONObject variaveis, HashMap mapaVariavel, Memor
 				variaveis.put("tipoRetorno",   "break");
 				return variaveis.toString();
 			}
+
+
 			//2312-025116 By Leal
 			if (((line.contains("ITAU") && line.contains("EMPRESA")) || (line.contains("AGENCIA/CONTA:") && line.contains("NOME:") &&
 					arquivoCompleto.contains("HORARIO:"))) && (nomeArquivo.toUpperCase().contains("PDF") || nomeArquivo.toUpperCase().contains("ANCORA")) && nomePortador2.equals("")) {

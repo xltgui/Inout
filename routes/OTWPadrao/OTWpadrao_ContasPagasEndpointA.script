@@ -20524,7 +20524,7 @@ public boolean readExtratoItauPdfInterno(MemoryFile memFile, String nomePortador
 
         if (line.toUpperCase().contains("SALDO") && line.toUpperCase().contains("RESUMIDO") && tipo.equals("002")) naoLeMais = true;
 
-        if (line.toUpperCase().contains("DATA") && line.toUpperCase().contains("LANCAMENTOS") && line.toUpperCase().contains("VALOR") && line.toUpperCase().contains("SALDO") && (tipo.equals("002") || tipo.equals("003"))) {
+        if (line.toUpperCase().contains("DATA") && line.toUpperCase().contains("LANCAMENTOS") && line.toUpperCase().contains("VALOR") && line.toUpperCase().contains("SALDO") && tipo.equals("002")) {
             naoLeMais = false;
             continue;
         }
@@ -20597,8 +20597,7 @@ public boolean readExtratoItauPdfInterno(MemoryFile memFile, String nomePortador
                 if (!dataMovimento.matches("[0-9]{2}/[0-9]{2}/[0-9]{4}")) dataMovimento = "";
             }
             //#2306-006237
-            if (tipo.equals("004") || tipo.equals("999")) {
-
+            if (tipo.equals("004") || tipo.equals("999") || tipo.equals("006")) {
                 if(line.replaceAll(" ", "").contains("SALDO")){ //2307-009209
                     continue;
                 }
@@ -20625,6 +20624,7 @@ public boolean readExtratoItauPdfInterno(MemoryFile memFile, String nomePortador
                     }
                 }
             }
+
 
             if (dataMovimento.equals("")) continue;
 
@@ -20660,12 +20660,13 @@ public boolean readExtratoItauPdfInterno(MemoryFile memFile, String nomePortador
                     // logger.logInfo("Entrou valor matches");
                     colunaValor = trataValor(colunaValor);
                     valorDocumento = DecimalUtil.toDecimal(colunaValor);
+                    logger.logInfo("log1");
                     // logger.logInfo("Valor -> " + valorDocumento);
                     // logger.logInfo("debitoCredito -> " + debitoCredito);
                 }
             }
 
-            if(tipo.equals("999")){
+            if(tipo.equals("999") || tipo.equals("006")){
                 if(memFile.getStringFieldRemoveEspCharsUpper(memFile.getFieldsSize()-1).trim().equals("-") ){
                     ivalorDocumento = memFile.getFieldsSize()-2;
                     debitoCreditoAux = memFile.getStringFieldRemoveEspCharsUpper(memFile.getFieldsSize()-1).trim();
@@ -20675,6 +20676,8 @@ public boolean readExtratoItauPdfInterno(MemoryFile memFile, String nomePortador
 
                 try{
                     valorDocumento = memFile.getDoubleField(ivalorDocumento);
+                    logger.logInfo("log2");
+
                 }
                 catch (Exception vlrd){ valorDocumento = 0; }
 
@@ -20686,15 +20689,16 @@ public boolean readExtratoItauPdfInterno(MemoryFile memFile, String nomePortador
             if(tipo.equals("003") || tipo.equals("002") || tipo.equals("001")){
                 if(memFile.getFieldsSize()-1 < ivalorDocumento ) ivalorDocumento -= 1;
 
+
                 // gui - 2404-035591 - AJUSTE PARA VALOR DESLOCADO QUANDO HÁ UMA LETRA NA COLUNA DO NOME ORIGEM;
                 if(memFile.getStringFieldRemoveEspCharsUpper(1).trim().length() == 1){
                     ivalorDocumento += 1;
                 }
 
-
                 debitoCreditoAux = memFile.getStringFieldRemoveEspCharsUpper(memFile.getFieldsSize()-1).trim();
 
                 try{
+                    logger.logInfo("log3");
                     valorDocumento = memFile.getDoubleField(ivalorDocumento);
                 }
                 catch (Exception vlrd){ valorDocumento = 0; }
@@ -20704,6 +20708,8 @@ public boolean readExtratoItauPdfInterno(MemoryFile memFile, String nomePortador
                 valorDocumento = Math.abs(valorDocumento);
             }
 
+
+            //logger.logInfo("log2 -- dt -> " + dataMovimento + " vdoc -> " + valorDocumento);
             if (valorDocumento == 0) continue;
 
             contLinhaExtrato = StringUtil.leftPad(String.valueOf(memFile.getCurrentIndex()), 05, "0");
