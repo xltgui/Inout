@@ -507,7 +507,7 @@ public class TemplateUtils {
 				arquivoCompleto.contains("&<") ||
 				arquivoCompleto.contains("[!") ||
 				// gui - 2404-034523 - FORÇANDO CONVERSOR NOVO
-				//arquivoCompleto.contains(";%&")) {
+				arquivoCompleto.contains(";%&")) {
 			return true;
 		}
 		if (arquivoCompleto.equals("[]")) {
