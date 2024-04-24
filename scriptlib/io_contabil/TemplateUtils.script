@@ -310,7 +310,7 @@ public class TemplateUtils {
 		// gui - 2404-035964 -> NOVO PADRAO EXTRATO ITAU -> 22/04/2024
 		if (arquivoCompleto.contains("CORRENTE") && arquivoCompleto.contains("ITAU") &&
 				arquivoCompleto.contains("LANCAMENTO") && !arquivoCompleto.contains("POSICAO DA CONTA CORRENTE")
-				&& arquivoCompleto.contains("INTERNET5.ITAU.COM.BR") && arquivoCompleto.contains("NOME: AGENCIA:")) {
+				&& arquivoCompleto.contains("INTERNET") && arquivoCompleto.contains(".ITAU.COM.BR") && arquivoCompleto.contains("NOME: AGENCIA:")) {
 			return true; //ITAU PADRAO 6
 		}
 
@@ -492,7 +492,21 @@ public class TemplateUtils {
 			return true; //FRANCESINHA UNICREDI
 		}
 
-		if (arquivoCompleto.contains("%$&") || arquivoCompleto.contains("!%") || arquivoCompleto.contains("$!%&") || arquivoCompleto.contains("# $%") || arquivoCompleto.contains("$*&-") || arquivoCompleto.contains("%$$&$$") || arquivoCompleto.contains("#$#%") || arquivoCompleto.contains("%&*") || arquivoCompleto.contains("*##%%") || arquivoCompleto.contains("##$%#&") || arquivoCompleto.contains("!\"#\"") || arquivoCompleto.contains("[!\"") || arquivoCompleto.contains("&<") || arquivoCompleto.contains("[!")) {
+		if (arquivoCompleto.contains("%$&") ||
+				arquivoCompleto.contains("!%") ||
+				arquivoCompleto.contains("$!%&") ||
+				arquivoCompleto.contains("# $%") ||
+				arquivoCompleto.contains("$*&-") ||
+				arquivoCompleto.contains("%$$&$$") ||
+				arquivoCompleto.contains("#$#%") ||
+				arquivoCompleto.contains("%&*") ||
+				arquivoCompleto.contains("*##%%") ||
+				arquivoCompleto.contains("##$%#&") ||
+				arquivoCompleto.contains("!\"#\"") ||
+				arquivoCompleto.contains("[!\"") ||
+				arquivoCompleto.contains("&<") ||
+				arquivoCompleto.contains("[!") ||
+				arquivoCompleto.contains(";%&")) {
 			return true;
 		}
 		if (arquivoCompleto.equals("[]")) {

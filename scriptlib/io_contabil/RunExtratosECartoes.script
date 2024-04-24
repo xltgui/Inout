@@ -1036,8 +1036,20 @@ public String verificaExtratos(JSONObject variaveis, HashMap mapaVariavel, Memor
 				jDados.put("CODEMPRESA", codEmpresa);
 				jDados.put("NOMEARQUIVO", nomeArquivo);
 
+
+
 				// logger.logInfo("NOME PORTADOR UNICRED -> "+ nomePortador);
-				if(arquivoCompleto.contains("SISTEMA DE AUTOMACAO UNICRED") || cabecalhoPlanilha.contains("UNICRED VALOR CAPITAL") || cabecalhoPlanilha.contains("UNICRED VALE") || cabecalhoPlanilha.contains("UNICRED PREMIUM")){
+				if(arquivoCompleto.contains("SISTEMA DE AUTOMACAO UNICRED") || cabecalhoPlanilha.contains("UNICRED VALOR CAPITAL")
+						|| cabecalhoPlanilha.contains("UNICRED VALE") || cabecalhoPlanilha.contains("UNICRED PREMIUM")){
+
+					/* gui - 24/04/2024 -> DIFERENCIAÇÃO DE TIPOS PARA TRATAR DEBITO E CREDITO
+					REMOVIDO POIS OS NOME ORIGENS VARIAM, NAO SENDO POSSIVEL DIFERENCIAR DEBITO E CREDITO
+					if(cabecalhoPlanilha.contains("UNICRED VALE")){
+						jDados.put("TIPO", "003");
+					}else{
+						jDados.put("TIPO", "004");
+					}*/
+
 					readExtratoECartao("readExtratoUnicred3PDF", memFile, jDados, dbIOCont, logger);
 					variaveis.put("tipoRetorno",   "break");
 					return variaveis.toString();
@@ -1735,6 +1747,14 @@ public String verificaExtratos(JSONObject variaveis, HashMap mapaVariavel, Memor
 		//continue excluido. Validação utilizando cabecalhoPlanilha. Adicionado ao jDados um TIPOLAYOUT, onde diferencia-se entre 001 e 002
 		//por outra validacao.
 		////// Extrato - BANCO SANTANDER PDF ///////////////////////////////////////////////////
+
+		/*logger.logInfo((("teste -> " + cabecalhoPlanilha.contains("INTERNET BANKING") + "|" + arquivoCompleto.contains("CENTRAL DE ATENDIMENTO SANTANDER")) +
+				"|" + (arquivoCompleto.contains("CENTRAL DE ATENDIMENTO SANTANDER") +  "|" + cabecalhoPlanilha.contains("EXTRATO >")) +
+				"|" + ((cabecalhoPlanilha.contains("CONSULTAR") +  "|" + (!arquivoCompleto.contains("SEU NUMERO") +  "|" + !arquivoCompleto.contains("NOSSO NUMERO")))
+						+ "|" + ((cabecalhoPlanilha.contains("CONTA CORRENTE >") + "|" + (cabecalhoPlanilha.contains("DATA")
+						+  "|" + cabecalhoPlanilha.contains("VALOR") +  "|" + cabecalhoPlanilha.contains("HISTORICO")))
+						+ "|" + cabecalhoPlanilha.contains("CONTA CORRENTE|")))));*/
+
 		if ((roteiroCRM.optString("Planilhas_Padroes").contains("Extrato_Santander_PDF") &&
 				((cabecalhoPlanilha.contains("INTERNET BANKING") || arquivoCompleto.contains("CENTRAL DE ATENDIMENTO SANTANDER")) &&
 						(arquivoCompleto.contains("CENTRAL DE ATENDIMENTO SANTANDER") || cabecalhoPlanilha.contains("EXTRATO >")) &&
@@ -1776,7 +1796,7 @@ public String verificaExtratos(JSONObject variaveis, HashMap mapaVariavel, Memor
 						cabecalhoPlanilha.contains("DESCRI"))
 
 		) {
-
+			logger.logInfo("entrousantand");
 
 			JSONObject jDados = new JSONObject();
 			// logger.logInfo("ENTROU SANT");
@@ -3285,7 +3305,8 @@ public String verificaExtratos(JSONObject variaveis, HashMap mapaVariavel, Memor
 					(cabecalhoPlanilha.contains("SALDO RESUMIDO") && cabecalhoPlanilha.contains("BANCO ITAU S/A")) &&
 							nomePortador2.equals("") || (cabecalhoPlanilha.contains("EXTRATO CONTA CORRENTE") &&
 					cabecalhoPlanilha.contains("PERIODO DE VISUALIZACAO: MES COMPLETO")) ||
-					(cabecalhoPlanilha.contains("INTERNET5.ITAU.COM.BR") && cabecalhoPlanilha.contains("AGENCIA:") && cabecalhoPlanilha.contains("CONTA:"))) {
+					(cabecalhoPlanilha.contains("INTERNET")  && cabecalhoPlanilha.contains(".ITAU.COM.BR") && cabecalhoPlanilha.contains("AGENCIA:")
+					&& cabecalhoPlanilha.contains("CONTA:"))) {
 				// logger.logInfo("NOMESSPORT " +nomePortador2);
 				JSONObject jDados = new JSONObject();
 
