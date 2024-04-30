@@ -1039,8 +1039,7 @@ public String verificaExtratos(JSONObject variaveis, HashMap mapaVariavel, Memor
 
 
 				// logger.logInfo("NOME PORTADOR UNICRED -> "+ nomePortador);
-				if(arquivoCompleto.contains("SISTEMA DE AUTOMACAO UNICRED") || cabecalhoPlanilha.contains("UNICRED VALOR CAPITAL")
-						|| cabecalhoPlanilha.contains("UNICRED VALE") || cabecalhoPlanilha.contains("UNICRED PREMIUM")){
+				if(arquivoCompleto.contains("SISTEMA DE AUTOMACAO UNICRED") || cabecalhoPlanilha.contains("UNICRED VALE")){
 
 					/* gui - 24/04/2024 -> DIFERENCIAÇÃO DE TIPOS PARA TRATAR DEBITO E CREDITO
 					REMOVIDO POIS OS NOME ORIGENS VARIAM, NAO SENDO POSSIVEL DIFERENCIAR DEBITO E CREDITO
@@ -1069,7 +1068,8 @@ public String verificaExtratos(JSONObject variaveis, HashMap mapaVariavel, Memor
 			// + memFile.getStringFieldRemoveEspCharsUpper(2) + " | " +  cabecalhoPlanilha);
 
 			// XAVIER 003749 - Colocado negacao cabecalho planilha pois quem tem SICOOB e UNICRED2 da conflito na coluna A contendo CONTA:
-			if(memFile.getStringFieldRemoveEspCharsUpper(0).contains("CONTA:") && cabecalhoPlanilha.contains("COOPERATIVA DE CREDITO UNICRED") /*&& !cabecalhoPlanilha.contains("SICOOB")*/) {
+			if(memFile.getStringFieldRemoveEspCharsUpper(0).contains("CONTA:") &&
+					cabecalhoPlanilha.contains("COOPERATIVA DE CREDITO") && cabecalhoPlanilha.contains("UNCIRED EVOLUCAO")) {
 				// logger.logInfo("AGUI UNI");
 				nomePortador2 = memFile.getStringFieldRemoveEspCharsUpper(0).replaceAll("[^0-9]", "").trim();
 				variaveis.put("nomePortador2",   nomePortador2);

@@ -341,12 +341,17 @@ public class TemplateUtils {
             arquivoCompleto.contains("DATA DE MOVIMENTACAO") && arquivoCompleto.contains("AGENCIA/CONTA")){
             return true; //ITAUFRANCESINHA02
         }*/
+
+
+		/* gui - 30/04/2024 -> AJUSTE PARA FORÇAR LER PELO ANTIGO CONVERSOR O PADRÃO 01 DO UNICREDPDF
+		 CHAMADOO -> 2404-037187
+		 AJUSTE FEITO PORQUE O NOVO CONVERSOR NAÕ ESTAVA TRAZENDO TODOS OS LANÇAMENTOS DO PDF, JA O ANTIGO, TRAZ TUDO.
 		if(((arquivoCompleto.contains("CENTRAL DE RELACIONAMENTO") && arquivoCompleto.contains("DEMAIS REGIOES:")
 				&& arquivoCompleto.contains("NO EXTERIOR:") && arquivoCompleto.contains("SAC:"))
 				|| arquivoCompleto.contains("OUVIDORIA") && arquivoCompleto.contains("0800 940 0602") && !arquivoCompleto.contains("COOPERATIVA DE CREDITO UNICRED"))
 				&& !arquivoCompleto.contains("TELE ATENDIMENTO")){
 			return true; //UNICRED1
-		}
+		}*/
 
 		if(arquivoCompleto.contains("OUVIDORIA: 0800 591 5120") &&
 				arquivoCompleto.contains("COOPERATIVA DE CREDITO CREHNOR")){
